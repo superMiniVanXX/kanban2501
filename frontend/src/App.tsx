@@ -1,3 +1,14 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import ProjectList from './pages/ProjectList';
+
 export default function App() {
-  return <div className="p-8 text-center text-gray-500">Kanban-PMP Loading...</div>;
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<ProjectList />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
+  );
 }
