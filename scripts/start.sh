@@ -28,8 +28,8 @@ cd "$FRONTEND" && npm run build
 # --- Start backend ---
 cd "$BACKEND"
 PIDFILE="$ROOT/.kanban.pid"
-echo "==> Starting Kanban-PMP on http://localhost:8080 ..."
-nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 > "$ROOT/kanban.log" 2>&1 &
+echo "==> Starting Kanban-PMP on http://localhost:9527 ..."
+nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 9527 > "$ROOT/kanban.log" 2>&1 &
 echo $! > "$PIDFILE"
 echo "    PID: $(cat "$PIDFILE")"
 echo "    Log: $ROOT/kanban.log"
