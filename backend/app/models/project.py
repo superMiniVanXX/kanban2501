@@ -22,4 +22,4 @@ class Project(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
-    # board = relationship("Board", back_populates="project", uselist=False, cascade="all, delete-orphan")  # Task 4
+    board = relationship("Board", back_populates="project", uselist=False, cascade="all, delete-orphan")
