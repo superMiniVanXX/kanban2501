@@ -16,9 +16,10 @@ interface Props {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
   onQuickCreate: (status: Column['column_status']) => void;
+  onRefresh: () => void;
 }
 
-export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate }: Props) {
+export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate, onRefresh }: Props) {
   const style = COLUMN_STYLE[column.column_status] ?? COLUMN_STYLE.backlog;
 
   return (
@@ -61,7 +62,7 @@ export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate
                     {...provided.dragHandleProps}
                     className={snapshot.isDragging ? 'opacity-90 shadow-lg' : ''}
                   >
-                    <TaskCard task={task} onClick={onTaskClick} />
+                    <TaskCard task={task} onClick={onTaskClick} onRefresh={onRefresh} />
                   </div>
                 )}
               </Draggable>

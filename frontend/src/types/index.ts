@@ -9,6 +9,15 @@ export interface Project {
   updated_at: string;
 }
 
+export interface SubTask {
+  id: string;
+  task_id: string;
+  title: string;
+  done: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface Task {
   id: string;
   project_id: string;
@@ -28,6 +37,7 @@ export interface Task {
   completed_at: string | null;
   sort_order: number;
   tags: string[] | null;
+  subtasks: SubTask[];
   created_at: string;
   updated_at: string;
 }

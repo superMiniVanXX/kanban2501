@@ -64,6 +64,7 @@ export default function KanbanBoard() {
     try {
       await changeTaskStatus(taskId, newStatus);
       await moveTask(taskId, newIndex);
+      await fetchBoard();
     } catch {
       setBoard(prevBoard);
     }
@@ -113,6 +114,7 @@ export default function KanbanBoard() {
               tasks={col.tasks}
               onTaskClick={setEditingTask}
               onQuickCreate={handleQuickCreate}
+              onRefresh={fetchBoard}
             />
           ))}
         </div>
