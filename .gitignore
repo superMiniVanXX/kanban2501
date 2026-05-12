@@ -1,0 +1,8 @@
+# kanban/.gitignore
+backend/venv/
+backend/data/*.db
+backend/static/
+frontend/node_modules/
+frontend/dist/
+.kanban.pid
+kanban.log
