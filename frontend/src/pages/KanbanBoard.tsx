@@ -117,58 +117,93 @@ export default function KanbanBoard() {
       {/* Task detail sidebar */}
       {editingTask && (
         <div className="fixed inset-0 bg-black/40 flex justify-end z-50" onClick={() => setEditingTask(null)}>
-          <div className="bg-white w-full max-w-md h-full shadow-xl p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-lg font-semibold">{editingTask.title}</h2>
-              <button onClick={() => setEditingTask(null)} className="text-gray-400 hover:text-gray-600">&times;</button>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-gray-500">Status:</span>
-                  <select
-                    value={editingTask.status}
-                    onChange={(e) => { handleSaveTask({ status: e.target.value as Task['status'] }); setEditingTask({ ...editingTask, status: e.target.value as Task['status'] }); }}
-                    className="ml-2 border rounded px-2 py-1"
-                  >
-                    <option value="backlog">Backlog</option>
-                    <option value="todo">To Do</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="review">Review</option>
-                    <option value="done">Done</option>
-                  </select>
-                </div>
-                <div>
-                  <span className="text-gray-500">Priority:</span>
-                  <select
-                    value={editingTask.priority}
-                    onChange={(e) => { handleSaveTask({ priority: e.target.value as Task['priority'] }); setEditingTask({ ...editingTask, priority: e.target.value as Task['priority'] }); }}
-                    className="ml-2 border rounded px-2 py-1"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                  </select>
-                </div>
+          <div className="bg-white w-full max-w-md h-full shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* colored header strip */}
+            <div className={`h-2 ${
+              editingTask.status === 'done' ? 'bg-emerald-500' :
+              editingTask.status === 'review' ? 'bg-violet-500' :
+              editingTask.status === 'in_progress' ? 'bg-amber-500' :
+              editingTask.status === 'todo' ? 'bg-blue-500' : 'bg-slate-500'
+            }`} />
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-lg font-semibold">{editingTask.title}</h2>
+                <button onClick={() => setEditingTask(null)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
               </div>
-              {editingTask.description && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Description</h4>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{editingTask.description}</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">Status</label>
+                    <select
+                      value={editingTask.status}
+                      onChange={(e) => { handleSaveTask({ status: e.target.value as Task['status'] }); setEditingTask({ ...editingTask, status: e.target.value as Task['status'] }); }}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                    >
+                      <option value="backlog">Backlog</option>
+                      <option value="todo">To Do</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="review">Review</option>
+                      <option value="done">Done</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">Priority</label>
+                    <select
+                      value={editingTask.priority}
+                      onChange={(e) => { handleSaveTask({ priority: e.target.value as Task['priority'] }); setEditingTask({ ...editingTask, priority: e.target.value as Task['priority'] }); }}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
                 </div>
-              )}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {editingTask.assignee && <div><span className="text-gray-500">Assignee:</span> {editingTask.assignee}</div>}
-                {editingTask.estimated_hours && <div><span className="text-gray-500">Est:</span> {editingTask.estimated_hours}h</div>}
-                {editingTask.due_date && <div><span className="text-gray-500">Due:</span> {new Date(editingTask.due_date).toLocaleDateString()}</div>}
+                {editingTask.description && (
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-400 mb-1">Description</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">{editingTask.description}</p>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {editingTask.assignee && (
+                    <div className="bg-indigo-50 rounded-lg px-3 py-2">
+                      <span className="text-xs text-indigo-400">Assignee</span>
+                      <div className="text-indigo-700 font-medium">{editingTask.assignee}</div>
+                    </div>
+                  )}
+                  {editingTask.estimated_hours && (
+                    <div className="bg-sky-50 rounded-lg px-3 py-2">
+                      <span className="text-xs text-sky-400">Estimated</span>
+                      <div className="text-sky-700 font-medium">{editingTask.estimated_hours}h</div>
+                    </div>
+                  )}
+                  {editingTask.due_date && (
+                    <div className="bg-amber-50 rounded-lg px-3 py-2">
+                      <span className="text-xs text-amber-400">Due Date</span>
+                      <div className="text-amber-700 font-medium">{new Date(editingTask.due_date).toLocaleDateString()}</div>
+                    </div>
+                  )}
+                </div>
+                {editingTask.progress > 0 && (
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-gray-400">Progress</span>
+                      <span className="font-medium text-gray-600">{editingTask.progress}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${editingTask.progress}%` }} />
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={handleDeleteTask}
+                  className="w-full mt-6 px-4 py-2.5 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 text-sm font-medium transition-colors"
+                >
+                  Delete Task
+                </button>
               </div>
-              <button
-                onClick={handleDeleteTask}
-                className="w-full mt-6 px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 text-sm"
-              >
-                Delete Task
-              </button>
             </div>
           </div>
         </div>
