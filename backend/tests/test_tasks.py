@@ -65,3 +65,29 @@ def test_delete_task(client, project_id):
     tid = create.json()["id"]
     resp = client.delete(f"/api/v1/tasks/{tid}")
     assert resp.status_code == 204
+
+
+def test_board_auto_creates_with_default_columns(client, project_id):
+    resp = client.get(f"/api/v1/projects/{project_id}/board")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["project_id"] == project_id
+    assert len(data["columns"]) == 5
+    assert data["columns"][0]["column_status"] == "backlog"
+    assert data["columns"][0]["tasks"] == []
+
+
+def test_board_includes_tasks_in_columns(client, project_id):
+    client.post(f"/api/v1/projects/{project_id}/tasks", json={"title": "T1"})
+    r2 = client.post(f"/api/v1/projects/{project_id}/tasks", json={"title": "T2"})
+    tid = r2.json()["id"]
+    client.put(f"/api/v1/tasks/{tid}/status", json={"status": "in_progress"})
+
+    resp = client.get(f"/api/v1/projects/{project_id}/board")
+    data = resp.json()
+
+    backlog_col = next(c for c in data["columns"] if c["column_status"] == "backlog")
+    assert len(backlog_col["tasks"]) == 1
+
+    progress_col = next(c for c in data["columns"] if c["column_status"] == "in_progress")
+    assert len(progress_col["tasks"]) == 1
