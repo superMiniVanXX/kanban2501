@@ -33,18 +33,29 @@ export default function KanbanBoard() {
 
     // Optimistic update
     const prevBoard = board;
+    const sourceId = result.source.droppableId;
+    const isSameColumn = sourceId === newStatus;
+
     const updatedColumns = board.columns.map((col) => {
-      if (col.column_status === result.source.droppableId) {
+      // Same column: just reorder
+      if (isSameColumn && col.column_status === sourceId) {
+        const reordered = [...col.tasks];
+        const [moved] = reordered.splice(result.source.index, 1);
+        reordered.splice(newIndex, 0, moved);
+        return { ...col, tasks: reordered };
+      }
+      // Different column: remove from source
+      if (!isSameColumn && col.column_status === sourceId) {
         return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
       }
-      if (col.column_status === newStatus) {
-        const newTasks = [...col.tasks];
+      // Different column: add to destination
+      if (!isSameColumn && col.column_status === newStatus) {
+        const destTasks = [...col.tasks];
         const task = prevBoard.columns
           .flatMap((c) => c.tasks)
           .find((t) => t.id === taskId)!;
-        task.status = newStatus;
-        newTasks.splice(newIndex, 0, task);
-        return { ...col, tasks: newTasks };
+        destTasks.splice(newIndex, 0, { ...task, status: newStatus });
+        return { ...col, tasks: destTasks };
       }
       return col;
     });
