@@ -127,7 +127,7 @@ export default function KanbanBoard() {
 
       {/* Task detail sidebar */}
       {editingTask && (
-        <div className="fixed inset-0 bg-black/40 flex justify-end z-50" onClick={() => setEditingTask(null)}>
+        <div className="fixed inset-0 bg-black/40 flex justify-end z-50" onClick={() => { setEditingTask(null); fetchBoard(); }}>
           <div className="bg-white w-full max-w-md h-full shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             {/* colored header strip */}
             <div className={`h-2 ${
@@ -139,7 +139,7 @@ export default function KanbanBoard() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-lg font-semibold">{editingTask.title}</h2>
-                <button onClick={() => setEditingTask(null)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+                <button onClick={() => { setEditingTask(null); fetchBoard(); }} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
               </div>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -147,7 +147,12 @@ export default function KanbanBoard() {
                     <label className="block text-xs font-medium text-gray-400 mb-1">Status</label>
                     <select
                       value={editingTask.status}
-                      onChange={(e) => { handleSaveTask({ status: e.target.value as Task['status'] }); setEditingTask({ ...editingTask, status: e.target.value as Task['status'] }); }}
+                      onChange={(e) => {
+                        const newStatus = e.target.value as Task['status'];
+                        changeTaskStatus(editingTask.id, newStatus).then((updated) => {
+                          setEditingTask({ ...editingTask, status: updated.status, completed_at: updated.completed_at, progress: updated.progress });
+                        });
+                      }}
                       className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
                     >
                       <option value="backlog">Backlog</option>
