@@ -21,6 +21,5 @@ class Project(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships to be added in Tasks 3 and 4
-    # tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
-    # board = relationship("Board", back_populates="project", uselist=False, cascade="all, delete-orphan")
+    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
+    # board = relationship("Board", back_populates="project", uselist=False, cascade="all, delete-orphan")  # Task 4
