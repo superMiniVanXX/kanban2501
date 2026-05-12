@@ -1,10 +1,10 @@
 import type { Task } from '../types';
 
-const PRIORITY_STYLE: Record<string, { border: string; badge: string; bar: string }> = {
-  critical: { border: 'border-l-red-500',   badge: 'bg-red-100 text-red-700',   bar: 'bg-red-500' },
-  high:     { border: 'border-l-orange-400', badge: 'bg-orange-100 text-orange-700', bar: 'bg-orange-400' },
-  medium:   { border: 'border-l-sky-400',    badge: 'bg-sky-100 text-sky-700',  bar: 'bg-sky-400' },
-  low:      { border: 'border-l-gray-300',   badge: 'bg-gray-100 text-gray-500', bar: 'bg-gray-300' },
+const PRIORITY_STYLE: Record<string, { bg: string; border: string; badge: string; title: string; bar: string }> = {
+  critical: { bg: 'bg-red-50',      border: 'border-l-red-500',   badge: 'bg-red-200/80 text-red-800',   title: 'text-red-900', bar: 'bg-red-500' },
+  high:     { bg: 'bg-orange-50',   border: 'border-l-orange-500', badge: 'bg-orange-200/80 text-orange-800', title: 'text-orange-900', bar: 'bg-orange-500' },
+  medium:   { bg: 'bg-sky-50',      border: 'border-l-sky-400',    badge: 'bg-sky-100 text-sky-700',    title: 'text-gray-900', bar: 'bg-sky-400' },
+  low:      { bg: 'bg-gray-50',     border: 'border-l-gray-300',   badge: 'bg-gray-200/80 text-gray-600', title: 'text-gray-700', bar: 'bg-gray-300' },
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -31,9 +31,9 @@ export default function TaskCard({ task, onClick }: Props) {
   return (
     <div
       onClick={() => onClick(task)}
-      className={`bg-white rounded-lg shadow-sm border border-gray-200/80 border-l-4 ${ps.border} p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all`}
+      className={`${ps.bg} rounded-lg shadow-sm border border-gray-200/80 border-l-4 ${ps.border} p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all`}
     >
-      <div className="text-sm font-medium text-gray-900 mb-1.5">
+      <div className={`text-sm font-medium mb-1.5 ${ps.title}`}>
         {TYPE_ICON[task.task_type] ?? ''}{task.title}
       </div>
       <div className="flex items-center flex-wrap gap-1.5 text-xs">
@@ -52,7 +52,7 @@ export default function TaskCard({ task, onClick }: Props) {
       </div>
       {task.progress > 0 && (
         <div className="mt-2 flex items-center gap-2">
-          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="flex-1 h-1.5 bg-white/50 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all ${ps.bar}`} style={{ width: `${task.progress}%` }} />
           </div>
           <span className="text-[10px] text-gray-400 font-medium tabular-nums">{task.progress}%</span>
