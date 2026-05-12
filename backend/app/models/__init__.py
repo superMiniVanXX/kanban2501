@@ -1,3 +1,4 @@
 from app.models.project import Project
 from app.models.task import Task
 from app.models.board import Board, Column
+from app.models.subtask import SubTask

@@ -41,3 +41,4 @@ class Task(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     project = relationship("Project", back_populates="tasks")
+    subtasks = relationship("SubTask", back_populates="task", cascade="all, delete-orphan", order_by="SubTask.sort_order")

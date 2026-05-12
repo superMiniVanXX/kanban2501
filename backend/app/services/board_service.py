@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.board import Board, Column
 from app.models.task import Task
@@ -33,7 +33,7 @@ def get_or_create_board(db: Session, project_id: str) -> Board:
 def load_board_with_tasks(db: Session, project_id: str) -> dict:
     board = get_or_create_board(db, project_id)
 
-    tasks = db.query(Task).filter(Task.project_id == project_id).all()
+    tasks = db.query(Task).options(joinedload(Task.subtasks)).filter(Task.project_id == project_id).all()
     tasks_by_status: dict[str, list] = {}
     for t in tasks:
         tasks_by_status.setdefault(t.status, []).append(t)
