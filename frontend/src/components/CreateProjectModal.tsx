@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import type { Project } from '../types';
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: { name: string; description: string }) => Promise<void>;
+  projects: Project[];
+  onSubmit: (data: { name: string; description: string; parent_id: string | null }) => Promise<void>;
 }
 
-export default function CreateProjectModal({ open, onClose, onSubmit }: Props) {
+export default function CreateProjectModal({ open, onClose, onSubmit, projects }: Props) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [parentId, setParentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   if (!open) return null;
@@ -17,9 +20,10 @@ export default function CreateProjectModal({ open, onClose, onSubmit }: Props) {
     e.preventDefault();
     if (!name.trim()) return;
     setLoading(true);
-    await onSubmit({ name: name.trim(), description: description.trim() });
+    await onSubmit({ name: name.trim(), description: description.trim(), parent_id: parentId });
     setName('');
     setDescription('');
+    setParentId(null);
     setLoading(false);
     onClose();
   };
@@ -49,6 +53,19 @@ export default function CreateProjectModal({ open, onClose, onSubmit }: Props) {
               rows={3}
               placeholder="Optional description"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Parent Project</label>
+            <select
+              value={parentId ?? ''}
+              onChange={(e) => setParentId(e.target.value || null)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="">(none — root project)</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
           </div>
           <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">

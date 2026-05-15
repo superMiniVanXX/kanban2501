@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Project, ProjectCreate, Task, TaskCreate, Board, SubTask } from '../types';
+import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board } from '../types';
 
 const api = axios.create({ baseURL: '/api/v1' });
 
@@ -18,6 +18,9 @@ export const updateProject = (id: string, data: Partial<ProjectCreate>) =>
 
 export const deleteProject = (id: string) =>
   api.delete(`/projects/${id}`);
+
+export const getProjectTree = () =>
+  api.get<ProjectTree[]>('/projects/tree').then((r) => r.data);
 
 // Tasks
 export const getTasks = (projectId: string, status?: string) =>
@@ -38,16 +41,9 @@ export const changeTaskStatus = (taskId: string, status: Task['status']) =>
 export const moveTask = (taskId: string, sort_order: number) =>
   api.put<Task>(`/tasks/${taskId}/move`, { sort_order }).then((r) => r.data);
 
+export const createSubProject = (taskId: string, data: { name: string; description?: string }) =>
+  api.post<Task>(`/tasks/${taskId}/create-sub-project`, data).then((r) => r.data);
+
 // Board
 export const getBoard = (projectId: string) =>
   api.get<Board>(`/projects/${projectId}/board`).then((r) => r.data);
-
-// SubTasks
-export const createSubTask = (taskId: string, data: { title: string }) =>
-  api.post<SubTask>(`/tasks/${taskId}/subtasks`, data).then((r) => r.data);
-
-export const updateSubTask = (subtaskId: string, data: { title?: string; done?: boolean }) =>
-  api.put<SubTask>(`/subtasks/${subtaskId}`, data).then((r) => r.data);
-
-export const deleteSubTask = (subtaskId: string) =>
-  api.delete(`/subtasks/${subtaskId}`);

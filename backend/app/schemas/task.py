@@ -1,8 +1,6 @@
 from datetime import date, datetime
 from pydantic import BaseModel, Field
 
-from app.schemas.subtask import SubTaskResponse
-
 
 class TaskCreate(BaseModel):
     title: str = Field(max_length=300)
@@ -14,6 +12,8 @@ class TaskCreate(BaseModel):
     start_date: date | None = None
     due_date: date | None = None
     tags: list[str] | None = None
+    sub_project_id: str | None = None
+    acceptance_criteria: str | None = None
 
 
 class TaskUpdate(BaseModel):
@@ -28,6 +28,8 @@ class TaskUpdate(BaseModel):
     start_date: date | None = None
     due_date: date | None = None
     tags: list[str] | None = None
+    sub_project_id: str | None = None
+    acceptance_criteria: str | None = None
 
 
 class TaskStatusUpdate(BaseModel):
@@ -57,7 +59,8 @@ class TaskResponse(BaseModel):
     completed_at: datetime | None
     sort_order: int
     tags: list | None
-    subtasks: list[SubTaskResponse] = []
+    sub_project_id: str | None
+    acceptance_criteria: str | None
     created_at: datetime
     updated_at: datetime
 

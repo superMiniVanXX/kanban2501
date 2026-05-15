@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.project import Project
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectStatusUpdate, ProjectResponse
+from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectStatusUpdate, ProjectResponse, ProjectTreeResponse
+from app.services.project_service import build_project_tree, would_create_cycle
 
 router = APIRouter(tags=["projects"])
 
@@ -18,11 +19,21 @@ def list_projects(status: str | None = None, db: Session = Depends(get_db)):
 
 @router.post("/projects", response_model=ProjectResponse, status_code=201)
 def create_project(data: ProjectCreate, db: Session = Depends(get_db)):
+    if data.parent_id:
+        parent = db.query(Project).filter(Project.id == data.parent_id).first()
+        if not parent:
+            raise HTTPException(status_code=400, detail="Parent project not found")
     project = Project(**data.model_dump())
     db.add(project)
     db.commit()
     db.refresh(project)
     return project
+
+
+@router.get("/projects/tree", response_model=list[ProjectTreeResponse])
+def list_project_tree(db: Session = Depends(get_db)):
+    all_projects = db.query(Project).order_by(Project.created_at.asc()).all()
+    return build_project_tree(all_projects)
 
 
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
@@ -38,7 +49,15 @@ def update_project(project_id: str, data: ProjectUpdate, db: Session = Depends(g
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    for k, v in data.model_dump(exclude_unset=True).items():
+    update_data = data.model_dump(exclude_unset=True)
+    if "parent_id" in update_data and update_data["parent_id"] is not None:
+        new_parent = update_data["parent_id"]
+        parent = db.query(Project).filter(Project.id == new_parent).first()
+        if not parent:
+            raise HTTPException(status_code=400, detail="Parent project not found")
+        if would_create_cycle(db, project_id, new_parent):
+            raise HTTPException(status_code=400, detail="Cannot set a descendant as parent")
+    for k, v in update_data.items():
         setattr(project, k, v)
     db.commit()
     db.refresh(project)

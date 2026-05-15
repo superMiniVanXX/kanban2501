@@ -1,6 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
 import type { Task } from '../types';
-import { createSubTask, updateSubTask, deleteSubTask } from '../services/api';
 
 const PRIORITY_STYLE: Record<string, { bg: string; border: string; badge: string; title: string; bar: string }> = {
   critical: { bg: 'bg-red-50',      border: 'border-l-red-500',   badge: 'bg-red-200/80 text-red-800',   title: 'text-red-900', bar: 'bg-red-500' },
@@ -16,6 +14,11 @@ const PRIORITY_LABELS: Record<string, string> = {
   low: 'Low',
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  backlog: 'Backlog', todo: 'To Do', in_progress: 'In Progress',
+  review: 'Review', done: 'Done', cancelled: 'Cancelled',
+};
+
 const TYPE_ICON: Record<string, string> = {
   task: '',
   milestone: '◆ ',
@@ -25,45 +28,14 @@ const TYPE_ICON: Record<string, string> = {
 interface Props {
   task: Task;
   onClick: (task: Task) => void;
-  onRefresh: () => void;
 }
 
-export default function TaskCard({ task, onClick, onRefresh }: Props) {
+export default function TaskCard({ task, onClick }: Props) {
   const ps = PRIORITY_STYLE[task.priority] ?? PRIORITY_STYLE.medium;
-  const [expanded, setExpanded] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (expanded && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [expanded]);
-
-  const doneCount = task.subtasks.filter((s) => s.done).length;
-  const totalCount = task.subtasks.length;
-
-  const handleToggleSubtask = async (subtaskId: string, done: boolean) => {
-    await updateSubTask(subtaskId, { done: !done });
-    onRefresh();
-  };
-
-  const handleDeleteSubtask = async (subtaskId: string) => {
-    await deleteSubTask(subtaskId);
-    onRefresh();
-  };
-
-  const handleAddSubtask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-    await createSubTask(task.id, { title: newTitle.trim() });
-    setNewTitle('');
-    onRefresh();
-  };
+  const hasTooltip = task.description || task.acceptance_criteria;
 
   return (
-    <div className={`${ps.bg} rounded-lg shadow-sm border border-gray-200/80 border-l-4 ${ps.border} transition-all`}>
-      {/* Header row */}
+    <div className={`${ps.bg} rounded-lg shadow-sm border border-gray-200/80 border-l-4 ${ps.border} transition-all group relative`}>
       <div
         className="p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all rounded-lg"
         onClick={() => onClick(task)}
@@ -72,14 +44,6 @@ export default function TaskCard({ task, onClick, onRefresh }: Props) {
           <div className={`text-sm font-medium ${ps.title}`}>
             {TYPE_ICON[task.task_type] ?? ''}{task.title}
           </div>
-          {totalCount > 0 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-              className="ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded bg-white/70 text-gray-500 hover:bg-white hover:text-gray-700 flex-shrink-0 transition-colors"
-            >
-              {doneCount}/{totalCount} ✓
-            </button>
-          )}
         </div>
         <div className="flex items-center flex-wrap gap-1.5 text-xs mt-1">
           <span className={`inline-block px-1.5 py-0.5 rounded font-medium ${ps.badge}`}>
@@ -95,62 +59,49 @@ export default function TaskCard({ task, onClick, onRefresh }: Props) {
             <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-medium">{task.assignee}</span>
           )}
         </div>
+        {task.sub_project_id && (
+          <div className="mt-1.5 flex items-center gap-1 text-[10px] text-purple-600 bg-purple-50 rounded px-1.5 py-0.5 w-fit">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+            Sub-project
+          </div>
+        )}
         {task.progress > 0 && (
           <div className="mt-2 flex items-center gap-2">
             <div className="flex-1 h-1.5 bg-white/50 rounded-full overflow-hidden">
               <div className={`h-full rounded-full transition-all ${ps.bar}`} style={{ width: `${task.progress}%` }} />
             </div>
             <span className="text-[10px] text-gray-400 font-medium tabular-nums">
-              {totalCount > 0 ? `${doneCount}/${totalCount}` : `${task.progress}%`}
+              {task.progress}%
             </span>
           </div>
         )}
       </div>
 
-      {/* Expand button for tasks without subtasks */}
-      {totalCount === 0 && (
-        <div className="px-3 pb-2">
-          <button
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-            className="text-[11px] text-gray-400 hover:text-blue-500 transition-colors"
-          >
-            + Add subtask
-          </button>
-        </div>
-      )}
-
-      {/* Expanded subtask area */}
-      {expanded && (
-        <div className="px-3 pb-3 border-t border-gray-200/60 pt-2" onClick={(e) => e.stopPropagation()}>
-          {task.subtasks.map((st) => (
-            <div key={st.id} className="flex items-center gap-2 py-1 group">
-              <input
-                type="checkbox"
-                checked={st.done}
-                onChange={() => handleToggleSubtask(st.id, st.done)}
-                className="w-3.5 h-3.5 rounded border-gray-300 text-blue-500 focus:ring-blue-400 cursor-pointer flex-shrink-0"
-              />
-              <span className={`text-xs flex-1 ${st.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                {st.title}
-              </span>
-              <button
-                onClick={() => handleDeleteSubtask(st.id)}
-                className="text-gray-300 hover:text-red-400 opacity-0 group-hover:opacity-100 text-xs transition-opacity"
-              >
-                ×
-              </button>
+      {/* Hover tooltip */}
+      {hasTooltip && (
+        <div className="absolute left-full top-0 ml-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50
+                        opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                        transition-all duration-150 pointer-events-none">
+          {task.description && (
+            <div className="mb-3">
+              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Description</div>
+              <p className="text-xs text-gray-700 leading-relaxed line-clamp-4 whitespace-pre-wrap">{task.description}</p>
             </div>
-          ))}
-          <form onSubmit={handleAddSubtask} className="mt-1">
-            <input
-              ref={inputRef}
-              type="text"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Add subtask..."
-              className="w-full text-xs border border-gray-200 rounded px-2 py-1.5 bg-white/70 focus:outline-none focus:ring-1 focus:ring-blue-400 placeholder:text-gray-300"
-            />
-          </form>
+          )}
+          {task.acceptance_criteria && (
+            <div className="mb-3">
+              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Acceptance Criteria</div>
+              <p className="text-xs text-gray-700 leading-relaxed line-clamp-4 whitespace-pre-wrap">{task.acceptance_criteria}</p>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-500 border-t pt-2">
+            <span className="bg-gray-100 px-1.5 py-0.5 rounded">{STATUS_LABEL[task.status] || task.status}</span>
+            {task.assignee && <span className="bg-gray-100 px-1.5 py-0.5 rounded">{task.assignee}</span>}
+            {task.estimated_hours && <span className="bg-gray-100 px-1.5 py-0.5 rounded">{task.estimated_hours}h</span>}
+            {task.due_date && <span className="bg-gray-100 px-1.5 py-0.5 rounded">Due {task.due_date}</span>}
+            {task.progress > 0 && <span className="bg-gray-100 px-1.5 py-0.5 rounded">{task.progress}%</span>}
+          </div>
+          <div className="absolute top-0 left-0 w-2 h-2 bg-white border-l border-b border-gray-200 transform -translate-x-1/2 rotate-45" style={{top: '12px'}} />
         </div>
       )}
     </div>

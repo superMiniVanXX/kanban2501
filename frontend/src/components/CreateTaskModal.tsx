@@ -12,6 +12,7 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
   const [form, setForm] = useState<TaskCreate>({
     title: '',
     description: '',
+    acceptance_criteria: '',
     priority: 'medium',
     assignee: '',
     estimated_hours: undefined,
@@ -31,7 +32,7 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
       assignee: form.assignee?.trim() || undefined,
       estimated_hours: form.estimated_hours || undefined,
     });
-    setForm({ title: '', description: '', priority: 'medium', assignee: '', estimated_hours: undefined, due_date: null });
+    setForm({ title: '', description: '', acceptance_criteria: '', priority: 'medium', assignee: '', estimated_hours: undefined, due_date: null });
     setLoading(false);
     onClose();
   };
@@ -56,7 +57,14 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
             onChange={(e) => set('description', e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={2}
-            placeholder="Description (optional)"
+            placeholder="Description"
+          />
+          <textarea
+            value={form.acceptance_criteria || ''}
+            onChange={(e) => set('acceptance_criteria', e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            rows={2}
+            placeholder="Acceptance criteria (e.g. Given/When/Then)"
           />
           <div className="grid grid-cols-2 gap-3">
             <div>

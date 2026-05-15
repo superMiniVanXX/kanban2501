@@ -7,13 +7,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.database import engine, Base
-from app.routers import projects, tasks, board, subtasks
+from app.database import ensure_schema
+from app.routers import projects, tasks, board
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    ensure_schema()
     yield
 
 
@@ -30,7 +30,6 @@ app.add_middleware(
 app.include_router(projects.router, prefix="/api/v1")
 app.include_router(tasks.router, prefix="/api/v1")
 app.include_router(board.router, prefix="/api/v1")
-app.include_router(subtasks.router, prefix="/api/v1")
 
 static_dir = Path(__file__).resolve().parent.parent / "static"
 if static_dir.is_dir():

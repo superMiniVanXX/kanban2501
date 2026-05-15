@@ -2,8 +2,8 @@ import { Link, Outlet } from 'react-router-dom';
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
   return (
-    <div className="min-h-screen">
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+    <div className="h-full flex flex-col">
+      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <Link to="/" className="text-xl font-bold text-gray-800 tracking-tight">
           Kanban-PMP
         </Link>
@@ -11,7 +11,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           <Link to="/" className="hover:text-gray-800">Projects</Link>
         </nav>
       </header>
-      <main className="max-w-[1600px] mx-auto p-6">
+      <main className="flex-1 min-h-0 px-6 py-4">
         {children ?? <Outlet />}
       </main>
     </div>

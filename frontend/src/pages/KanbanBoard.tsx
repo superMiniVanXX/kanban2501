@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
-import { getBoard, changeTaskStatus, moveTask, createTask, updateTask, deleteTask } from '../services/api';
-import type { Board, Task, TaskCreate } from '../types';
+import { getBoard, getProjectTree, changeTaskStatus, moveTask, createTask, updateTask, deleteTask, updateProject, createProject, createSubProject } from '../services/api';
+import type { Board, ProjectTree as ProjectTreeType, Task, TaskCreate } from '../types';
 import KanbanColumn from '../components/KanbanColumn';
 import CreateTaskModal from '../components/CreateTaskModal';
+import ProjectTree from '../components/ProjectTree';
 
 export default function KanbanBoard() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -13,16 +14,29 @@ export default function KanbanBoard() {
   const [showCreate, setShowCreate] = useState(false);
   const [createStatus, setCreateStatus] = useState<string>('backlog');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [projectTree, setProjectTree] = useState<ProjectTreeType[]>([]);
 
-  const fetchBoard = useCallback(async () => {
+  const fetchBoard = useCallback(async (showLoading = true) => {
     if (!projectId) return;
-    setLoading(true);
+    if (showLoading) setLoading(true);
     const data = await getBoard(projectId);
     setBoard(data);
-    setLoading(false);
+    if (showLoading) setLoading(false);
   }, [projectId]);
 
-  useEffect(() => { fetchBoard(); }, [fetchBoard]);
+  useEffect(() => { fetchBoard(); fetchTree(); }, [fetchBoard]);
+
+  const fetchTree = useCallback(async () => {
+    const tree = await getProjectTree();
+    setProjectTree(tree);
+  }, []);
+
+  const silentRefresh = useCallback(() => fetchBoard(false), [fetchBoard]);
+
+  const handleDetach = async (projectId: string) => {
+    await updateProject(projectId, { parent_id: null });
+    await fetchTree();
+  };
 
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination || !board) return;
@@ -31,24 +45,20 @@ export default function KanbanBoard() {
     const newStatus = result.destination.droppableId as Task['status'];
     const newIndex = result.destination.index;
 
-    // Optimistic update
     const prevBoard = board;
     const sourceId = result.source.droppableId;
     const isSameColumn = sourceId === newStatus;
 
     const updatedColumns = board.columns.map((col) => {
-      // Same column: just reorder
       if (isSameColumn && col.column_status === sourceId) {
         const reordered = [...col.tasks];
         const [moved] = reordered.splice(result.source.index, 1);
         reordered.splice(newIndex, 0, moved);
         return { ...col, tasks: reordered };
       }
-      // Different column: remove from source
       if (!isSameColumn && col.column_status === sourceId) {
         return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
       }
-      // Different column: add to destination
       if (!isSameColumn && col.column_status === newStatus) {
         const destTasks = [...col.tasks];
         const task = prevBoard.columns
@@ -64,7 +74,7 @@ export default function KanbanBoard() {
     try {
       await changeTaskStatus(taskId, newStatus);
       await moveTask(taskId, newIndex);
-      await fetchBoard();
+      await silentRefresh();
     } catch {
       setBoard(prevBoard);
     }
@@ -78,47 +88,115 @@ export default function KanbanBoard() {
   const handleCreateTask = async (data: TaskCreate) => {
     if (!projectId) return;
     await createTask(projectId, data);
-    await fetchBoard();
+    await silentRefresh();
   };
 
   const handleSaveTask = async (data: Partial<Task>) => {
     if (!editingTask) return;
     await updateTask(editingTask.id, data);
     setEditingTask(null);
-    await fetchBoard();
+    await silentRefresh();
+  };
+
+  const [subProjectName, setSubProjectName] = useState('');
+  const [creatingSubProject, setCreatingSubProject] = useState(false);
+
+  const [showAddSubProject, setShowAddSubProject] = useState(false);
+  const [newSubProjectName, setNewSubProjectName] = useState('');
+  const [addingSubProject, setAddingSubProject] = useState(false);
+
+  const handleAddSubProject = async () => {
+    if (!projectId || !newSubProjectName.trim()) return;
+    setAddingSubProject(true);
+    await createProject({ name: newSubProjectName.trim(), parent_id: projectId });
+    setNewSubProjectName('');
+    setAddingSubProject(false);
+    setShowAddSubProject(false);
+    await fetchTree();
+  };
+
+  const handleCreateSubProject = async () => {
+    if (!editingTask || !subProjectName.trim()) return;
+    setCreatingSubProject(true);
+    const updated = await createSubProject(editingTask.id, { name: subProjectName.trim() });
+    setEditingTask(updated);
+    setSubProjectName('');
+    setCreatingSubProject(false);
+    await fetchTree();
+    await silentRefresh();
   };
 
   const handleDeleteTask = async () => {
     if (!editingTask) return;
     await deleteTask(editingTask.id);
     setEditingTask(null);
-    await fetchBoard();
+    await silentRefresh();
   };
 
   if (loading) return <div className="text-gray-400">Loading board...</div>;
   if (!board) return <div className="text-gray-400">Board not found</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)]">
+    <div className="flex flex-col h-full">
       <div className="flex items-center gap-3 mb-4">
         <Link to="/" className="text-gray-400 hover:text-gray-600 text-sm">&larr; Projects</Link>
         <h1 className="text-xl font-bold">{board.name}</h1>
+        {!showAddSubProject ? (
+          <button
+            onClick={() => setShowAddSubProject(true)}
+            className="flex items-center gap-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 border border-purple-200 rounded-md transition-colors"
+            title="Add sub-project"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Sub-project
+          </button>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              value={newSubProjectName}
+              onChange={(e) => setNewSubProjectName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddSubProject()}
+              placeholder="Sub-project name"
+              className="border border-purple-300 rounded-md px-2.5 py-1 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none w-48"
+              autoFocus
+            />
+            <button
+              onClick={handleAddSubProject}
+              disabled={addingSubProject || !newSubProjectName.trim()}
+              className="px-2.5 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm font-medium transition-colors"
+            >
+              {addingSubProject ? '...' : 'Add'}
+            </button>
+            <button
+              onClick={() => { setShowAddSubProject(false); setNewSubProjectName(''); }}
+              className="px-2 py-1 text-gray-400 hover:text-gray-600 text-sm"
+            >
+              &times;
+            </button>
+          </div>
+        )}
       </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto flex-1 pb-4">
-          {board.columns.map((col) => (
-            <KanbanColumn
-              key={col.id}
-              column={col}
-              tasks={col.tasks}
-              onTaskClick={setEditingTask}
-              onQuickCreate={handleQuickCreate}
-              onRefresh={fetchBoard}
-            />
-          ))}
-        </div>
-      </DragDropContext>
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="w-64 border-r border-gray-200 overflow-y-auto flex-shrink-0 pb-4">
+          <ProjectTree projects={projectTree} onDetach={handleDetach} />
+        </aside>
+
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex gap-4 overflow-x-auto flex-1 pb-4 pl-4">
+            {board.columns.map((col) => (
+              <KanbanColumn
+                key={col.id}
+                column={col}
+                tasks={col.tasks}
+                onTaskClick={setEditingTask}
+                onQuickCreate={handleQuickCreate}
+              />
+            ))}
+          </div>
+        </DragDropContext>
+      </div>
 
       <CreateTaskModal
         open={showCreate}
@@ -184,6 +262,12 @@ export default function KanbanBoard() {
                     <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-3">{editingTask.description}</p>
                   </div>
                 )}
+                {editingTask.acceptance_criteria && (
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-400 mb-1">Acceptance Criteria</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap bg-emerald-50 rounded-lg p-3 border border-emerald-100">{editingTask.acceptance_criteria}</p>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {editingTask.assignee && (
                     <div className="bg-indigo-50 rounded-lg px-3 py-2">
@@ -215,6 +299,36 @@ export default function KanbanBoard() {
                     </div>
                   </div>
                 )}
+                <div className="border-t pt-4">
+                  <h4 className="text-xs font-medium text-gray-400 mb-2">Sub-Project</h4>
+                  {editingTask.sub_project_id ? (
+                    <Link
+                      to={`/projects/${editingTask.sub_project_id}/board`}
+                      onClick={() => setEditingTask(null)}
+                      className="flex items-center gap-2 text-sm text-purple-700 bg-purple-50 rounded-lg px-3 py-2 hover:bg-purple-100 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                      Open sub-project &rarr;
+                    </Link>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={subProjectName}
+                        onChange={(e) => setSubProjectName(e.target.value)}
+                        placeholder="New sub-project name"
+                        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                      />
+                      <button
+                        onClick={handleCreateSubProject}
+                        disabled={creatingSubProject || !subProjectName.trim()}
+                        className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm font-medium transition-colors"
+                      >
+                        {creatingSubProject ? '...' : 'Create'}
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={handleDeleteTask}
                   className="w-full mt-6 px-4 py-2.5 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 text-sm font-medium transition-colors"

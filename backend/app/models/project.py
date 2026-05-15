@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date
-from sqlalchemy import String, Text, Date, DateTime, Enum as SAEnum
+from sqlalchemy import String, Text, Date, DateTime, ForeignKey, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -18,8 +18,13 @@ class Project(Base):
     )
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    parent_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
+    children = relationship("Project", back_populates="parent")
+    parent = relationship("Project", back_populates="children", remote_side=[id], foreign_keys=[parent_id])
+
+    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan", foreign_keys="Task.project_id")
     board = relationship("Board", back_populates="project", uselist=False, cascade="all, delete-orphan")

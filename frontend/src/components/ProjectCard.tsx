@@ -9,24 +9,38 @@ const STATUS_COLORS: Record<string, string> = {
   archived: 'bg-gray-100 text-gray-400',
 };
 
-export default function ProjectCard({ project }: { project: Project }) {
+interface Props {
+  project: Project;
+  isChild?: boolean;
+}
+
+export default function ProjectCard({ project, isChild }: Props) {
   return (
     <Link
       to={`/projects/${project.id}/board`}
-      className="block bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow"
+      className={`block hover:bg-white/60 transition-colors ${isChild ? 'px-4 py-3 pl-6' : 'px-5 py-4'}`}
     >
-      <div className="flex items-start justify-between mb-2">
-        <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
-        <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[project.status] || 'bg-gray-100'}`}>
-          {project.status}
-        </span>
+      <div className="flex items-center justify-between">
+        <h3 className={`font-semibold text-gray-900 ${isChild ? 'text-sm' : 'text-base'}`}>
+          {isChild && <span className="text-gray-300 mr-1.5">└</span>}
+          {project.name}
+        </h3>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[project.status] || 'bg-gray-100'}`}>
+            {project.status}
+          </span>
+        </div>
       </div>
       {project.description && (
-        <p className="text-sm text-gray-500 line-clamp-2">{project.description}</p>
+        <p className={`text-gray-500 line-clamp-1 ${isChild ? 'text-xs mt-0.5' : 'text-sm mt-1'}`}>
+          {project.description}
+        </p>
       )}
-      <div className="mt-3 text-xs text-gray-400">
-        Created {new Date(project.created_at).toLocaleDateString()}
-      </div>
+      {!isChild && (
+        <div className="mt-2 text-xs text-gray-400">
+          Created {new Date(project.created_at).toLocaleDateString()}
+        </div>
+      )}
     </Link>
   );
 }

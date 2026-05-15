@@ -3,19 +3,15 @@ export interface Project {
   name: string;
   description: string | null;
   status: 'planning' | 'active' | 'on_hold' | 'completed' | 'archived';
+  parent_id: string | null;
   start_date: string | null;
   end_date: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface SubTask {
-  id: string;
-  task_id: string;
-  title: string;
-  done: boolean;
-  sort_order: number;
-  created_at: string;
+export interface ProjectTree extends Project {
+  children: ProjectTree[];
 }
 
 export interface Task {
@@ -37,7 +33,8 @@ export interface Task {
   completed_at: string | null;
   sort_order: number;
   tags: string[] | null;
-  subtasks: SubTask[];
+  sub_project_id: string | null;
+  acceptance_criteria: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -60,6 +57,7 @@ export interface Board {
 
 export type ProjectCreate = Pick<Project, 'name'> & {
   description?: string;
+  parent_id?: string | null;
   start_date?: string | null;
   end_date?: string | null;
 };
