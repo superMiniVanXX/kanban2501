@@ -68,9 +68,13 @@ def load_board_with_tasks(db: Session, project_id: str) -> dict:
             "tasks": col_tasks,
         })
 
+    active_tasks = [t for t in tasks if t.status != "cancelled"]
+    is_completed = len(active_tasks) > 0 and all(t.status == "done" for t in active_tasks)
+
     return {
         "id": board.id,
         "project_id": board.project_id,
         "name": board.name,
+        "is_completed": is_completed,
         "columns": columns,
     }

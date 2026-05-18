@@ -17,6 +17,7 @@ class Task(Base):
     title: Mapped[str] = mapped_column(String(300), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     acceptance_criteria: Mapped[str | None] = mapped_column(Text, nullable=True)
+    implementation_plan: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
         SAEnum("backlog", "todo", "in_progress", "review", "done", "cancelled", name="task_status"),
         default="backlog",

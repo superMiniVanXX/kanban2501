@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import ensure_schema
-from app.routers import projects, tasks, board
+from app.routers import projects, tasks, board, execution_configs, activity
 
 
 @asynccontextmanager
@@ -30,6 +30,8 @@ app.add_middleware(
 app.include_router(projects.router, prefix="/api/v1")
 app.include_router(tasks.router, prefix="/api/v1")
 app.include_router(board.router, prefix="/api/v1")
+app.include_router(execution_configs.router, prefix="/api/v1")
+app.include_router(activity.router, prefix="/api/v1")
 
 static_dir = Path(__file__).resolve().parent.parent / "static"
 if static_dir.is_dir():

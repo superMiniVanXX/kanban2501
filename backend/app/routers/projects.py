@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.project import Project
+from app.models.task import Task
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectStatusUpdate, ProjectResponse, ProjectTreeResponse
 from app.services.project_service import build_project_tree, would_create_cycle
+from app.services.activity_service import log_activity
 
 router = APIRouter(tags=["projects"])
 
@@ -33,7 +35,17 @@ def create_project(data: ProjectCreate, db: Session = Depends(get_db)):
 @router.get("/projects/tree", response_model=list[ProjectTreeResponse])
 def list_project_tree(db: Session = Depends(get_db)):
     all_projects = db.query(Project).order_by(Project.created_at.asc()).all()
-    return build_project_tree(all_projects)
+    all_tasks = db.query(Task).all()
+    tasks_by_project: dict[str, list] = {}
+    for t in all_tasks:
+        tasks_by_project.setdefault(t.project_id, []).append(t)
+    completion_map: dict[str, bool] = {}
+    task_stats: dict[str, dict] = {}
+    for pid, tasks in tasks_by_project.items():
+        active = [t for t in tasks if t.status != "cancelled"]
+        completion_map[pid] = len(active) > 0 and all(t.status == "done" for t in active)
+        task_stats[pid] = {"active": len(active), "done": sum(1 for t in active if t.status == "done")}
+    return build_project_tree(all_projects, completion_map, task_stats)
 
 
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
@@ -81,7 +93,11 @@ def update_project_status(project_id: str, data: ProjectStatusUpdate, db: Sessio
     valid = {"planning", "active", "on_hold", "completed", "archived"}
     if data.status not in valid:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of {valid}")
+    old_status = project.status
     project.status = data.status
     db.commit()
     db.refresh(project)
+    log_activity(db, project.id, "project_status_changed", "project", project.id, project.name,
+                 f"'{project.name}': {old_status} → {project.status}",
+                 {"old_status": old_status, "new_status": project.status})
     return project

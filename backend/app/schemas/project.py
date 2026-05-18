@@ -47,6 +47,8 @@ class ProjectTreeResponse(BaseModel):
     end_date: date | None
     created_at: datetime
     updated_at: datetime
+    is_completed: bool = False
+    progress: int = 0
     children: list[ProjectTreeResponse] = []
 
     model_config = {"from_attributes": True}

@@ -17,6 +17,7 @@ class BoardResponse(BaseModel):
     id: str
     project_id: str
     name: str
+    is_completed: bool
     columns: list[ColumnResponse]
 
     model_config = {"from_attributes": True}

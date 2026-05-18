@@ -1,14 +1,14 @@
 import { Droppable, Draggable } from '@hello-pangea/dnd';
-import type { Column, Task } from '../types';
+import type { Column, Task, ExecutionConfig } from '../types';
 import TaskCard from './TaskCard';
 
-const COLUMN_STYLE: Record<string, { header: string; bg: string; dot: string; hover: string }> = {
-  backlog:     { header: 'bg-slate-600',   bg: 'bg-slate-50',   dot: 'bg-slate-400',   hover: 'bg-slate-100' },
-  todo:        { header: 'bg-blue-500',    bg: 'bg-blue-50',    dot: 'bg-blue-400',    hover: 'bg-blue-100' },
-  in_progress: { header: 'bg-amber-500',   bg: 'bg-amber-50',   dot: 'bg-amber-400',   hover: 'bg-amber-100' },
-  review:      { header: 'bg-violet-500',  bg: 'bg-violet-50',  dot: 'bg-violet-400',  hover: 'bg-violet-100' },
-  done:        { header: 'bg-emerald-500', bg: 'bg-emerald-50', dot: 'bg-emerald-400', hover: 'bg-emerald-100' },
-  cancelled:   { header: 'bg-gray-500',    bg: 'bg-gray-50',    dot: 'bg-gray-400',    hover: 'bg-gray-100' },
+const COLUMN_STYLE: Record<string, { header: string; bg: string; hover: string }> = {
+  backlog:     { header: 'bg-slate-700',   bg: 'bg-slate-50/50',  hover: 'bg-slate-100/60' },
+  todo:        { header: 'bg-blue-600',    bg: 'bg-blue-50/50',   hover: 'bg-blue-100/60' },
+  in_progress: { header: 'bg-amber-600',   bg: 'bg-amber-50/50',  hover: 'bg-amber-100/60' },
+  review:      { header: 'bg-violet-600',  bg: 'bg-violet-50/50', hover: 'bg-violet-100/60' },
+  done:        { header: 'bg-emerald-600', bg: 'bg-emerald-50/50', hover: 'bg-emerald-100/60' },
+  cancelled:   { header: 'bg-gray-600',    bg: 'bg-gray-50/50',   hover: 'bg-gray-100/60' },
 };
 
 interface Props {
@@ -16,18 +16,18 @@ interface Props {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
   onQuickCreate: (status: Column['column_status']) => void;
+  executionConfigs: ExecutionConfig[];
 }
 
-export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate }: Props) {
+export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate, executionConfigs }: Props) {
   const style = COLUMN_STYLE[column.column_status] ?? COLUMN_STYLE.backlog;
 
   return (
-    <div className={`flex flex-col w-72 min-w-[288px] ${style.bg} rounded-xl border border-gray-200/60`}>
-      <div className={`flex items-center justify-between px-3 py-2.5 ${style.header} rounded-t-xl`}>
-        <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${style.dot} ring-2 ring-white/40`} />
-          <h3 className="text-sm font-semibold text-white">{column.name}</h3>
-          <span className="text-xs text-white/70 bg-white/20 rounded-full px-2 py-0.5">
+    <div className={`flex flex-col w-[340px] min-w-[340px] ${style.bg} rounded-xl border border-gray-200/60`}>
+      <div className={`flex items-center justify-between px-4 py-3 ${style.header} rounded-t-xl`}>
+        <div className="flex items-center gap-2.5">
+          <h3 className="text-sm font-bold text-white tracking-wide">{column.name}</h3>
+          <span className="text-xs text-white/80 bg-white/20 rounded-full px-2.5 py-0.5 font-bold">
             {tasks.length}
           </span>
           {column.wip_limit && (
@@ -38,7 +38,7 @@ export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate
         </div>
         <button
           onClick={() => onQuickCreate(column.column_status)}
-          className="text-white/60 hover:text-white text-lg leading-none transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/30 text-white text-lg leading-none transition-colors"
           title="Add task"
         >
           +
@@ -50,7 +50,9 @@ export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 px-2 pb-2 space-y-2 min-h-[100px] overflow-y-auto transition-colors rounded-b-xl ${snapshot.isDraggingOver ? style.hover : ''}`}
+            className={`flex-1 px-2.5 pb-2.5 pt-2 space-y-2.5 min-h-[120px] overflow-y-auto transition-colors rounded-b-xl ${
+              snapshot.isDraggingOver ? `${style.hover} ring-2 ring-dashed ring-gray-300/50 ring-inset` : ''
+            }`}
           >
             {tasks.map((task, index) => (
               <Draggable key={task.id} draggableId={task.id} index={index}>
@@ -59,9 +61,9 @@ export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    className={snapshot.isDragging ? 'opacity-90 shadow-lg' : ''}
+                    className={snapshot.isDragging ? 'opacity-90 rotate-1 shadow-xl' : ''}
                   >
-                    <TaskCard task={task} onClick={onTaskClick} />
+                    <TaskCard task={task} onClick={onTaskClick} executionConfigs={executionConfigs} />
                   </div>
                 )}
               </Draggable>

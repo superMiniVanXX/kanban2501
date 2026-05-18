@@ -52,3 +52,37 @@ def ensure_schema():
                 "ALTER TABLE tasks ADD COLUMN acceptance_criteria TEXT"
             ))
             conn.commit()
+        if "implementation_plan" not in task_cols:
+            conn.execute(text(
+                "ALTER TABLE tasks ADD COLUMN implementation_plan TEXT"
+            ))
+            conn.commit()
+        ec_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(execution_configs)"))]
+        if not ec_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS execution_configs ("
+                "id VARCHAR(36) PRIMARY KEY, "
+                "name VARCHAR(200) NOT NULL, "
+                "command_template TEXT NOT NULL, "
+                "description TEXT, "
+                "created_at DATETIME, "
+                "updated_at DATETIME"
+                ")"
+            ))
+            conn.commit()
+        al_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(activity_logs)"))]
+        if not al_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS activity_logs ("
+                "id VARCHAR(36) PRIMARY KEY, "
+                "project_id VARCHAR(36) NOT NULL, "
+                "event_type VARCHAR(50) NOT NULL, "
+                "entity_type VARCHAR(20) NOT NULL, "
+                "entity_id VARCHAR(36) NOT NULL, "
+                "entity_name VARCHAR(300) NOT NULL, "
+                "detail TEXT NOT NULL, "
+                "extra_data TEXT, "
+                "created_at DATETIME"
+                ")"
+            ))
+            conn.commit()

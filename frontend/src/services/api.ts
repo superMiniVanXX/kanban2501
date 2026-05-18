@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board } from '../types';
+import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult } from '../types';
 
 const api = axios.create({ baseURL: '/api/v1' });
 
@@ -44,6 +44,30 @@ export const moveTask = (taskId: string, sort_order: number) =>
 export const createSubProject = (taskId: string, data: { name: string; description?: string }) =>
   api.post<Task>(`/tasks/${taskId}/create-sub-project`, data).then((r) => r.data);
 
+// Execution Configs
+export const getExecutionConfigs = () =>
+  api.get<ExecutionConfig[]>('/execution-configs').then((r) => r.data);
+
+export const createExecutionConfig = (data: ExecutionConfigCreate) =>
+  api.post<ExecutionConfig>('/execution-configs', data).then((r) => r.data);
+
+export const updateExecutionConfig = (id: string, data: Partial<ExecutionConfigCreate>) =>
+  api.put<ExecutionConfig>(`/execution-configs/${id}`, data).then((r) => r.data);
+
+export const deleteExecutionConfig = (id: string) =>
+  api.delete(`/execution-configs/${id}`);
+
+export const executeTask = (taskId: string, configId: string) =>
+  api.post<ExecuteResult>(`/tasks/${taskId}/execute`, { config_id: configId }).then((r) => r.data);
+
+// Activity Logs
+export const getActivityLogs = (projectId: string, limit = 50) =>
+  api.get<ActivityLog[]>(`/projects/${projectId}/activity-logs`, { params: { limit } }).then((r) => r.data);
+
 // Board
 export const getBoard = (projectId: string) =>
   api.get<Board>(`/projects/${projectId}/board`).then((r) => r.data);
+
+// Search
+export const searchTasks = (q: string) =>
+  api.get<SearchResult[]>('/tasks/search', { params: { q } }).then((r) => r.data);

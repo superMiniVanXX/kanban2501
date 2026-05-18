@@ -11,6 +11,8 @@ export interface Project {
 }
 
 export interface ProjectTree extends Project {
+  is_completed: boolean;
+  progress: number;
   children: ProjectTree[];
 }
 
@@ -35,6 +37,7 @@ export interface Task {
   tags: string[] | null;
   sub_project_id: string | null;
   acceptance_criteria: string | null;
+  implementation_plan: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -52,6 +55,7 @@ export interface Board {
   id: string;
   project_id: string;
   name: string;
+  is_completed: boolean;
   columns: Column[];
 }
 
@@ -61,6 +65,38 @@ export type ProjectCreate = Pick<Project, 'name'> & {
   start_date?: string | null;
   end_date?: string | null;
 };
+
+export interface ExecutionConfig {
+  id: string;
+  name: string;
+  command_template: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ExecutionConfigCreate = Pick<ExecutionConfig, 'name' | 'command_template'> & {
+  description?: string;
+};
+
+export interface ActivityLog {
+  id: string;
+  project_id: string;
+  event_type: string;
+  entity_type: string;
+  entity_id: string;
+  entity_name: string;
+  detail: string;
+  extra_data: string | null;
+  created_at: string;
+}
+
+export interface ExecuteResult {
+  stdout: string;
+  stderr: string;
+  exit_code: number;
+  success: boolean;
+}
 
 export type TaskCreate = Pick<Task, 'title'> & {
   description?: string;
@@ -72,3 +108,16 @@ export type TaskCreate = Pick<Task, 'title'> & {
   due_date?: string | null;
   tags?: string[];
 };
+
+export interface SearchResult {
+  id: string;
+  project_id: string;
+  title: string;
+  status: Task['status'];
+  priority: Task['priority'];
+  task_type: Task['task_type'];
+  assignee: string | null;
+  due_date: string | null;
+  sub_project_id: string | null;
+  project_name: string;
+}

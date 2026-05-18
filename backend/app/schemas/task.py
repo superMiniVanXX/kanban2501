@@ -14,6 +14,7 @@ class TaskCreate(BaseModel):
     tags: list[str] | None = None
     sub_project_id: str | None = None
     acceptance_criteria: str | None = None
+    implementation_plan: str | None = None
 
 
 class TaskUpdate(BaseModel):
@@ -30,6 +31,7 @@ class TaskUpdate(BaseModel):
     tags: list[str] | None = None
     sub_project_id: str | None = None
     acceptance_criteria: str | None = None
+    implementation_plan: str | None = None
 
 
 class TaskStatusUpdate(BaseModel):
@@ -61,7 +63,23 @@ class TaskResponse(BaseModel):
     tags: list | None
     sub_project_id: str | None
     acceptance_criteria: str | None
+    implementation_plan: str | None
     created_at: datetime
     updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class TaskSearchResponse(BaseModel):
+    id: str
+    project_id: str
+    title: str
+    status: str
+    priority: str
+    task_type: str
+    assignee: str | None
+    due_date: date | None
+    sub_project_id: str | None
+    project_name: str
 
     model_config = {"from_attributes": True}

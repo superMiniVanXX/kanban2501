@@ -1,14 +1,40 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
+import SearchBox from './SearchBox';
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
+  const location = useLocation();
+
+  const navLinks = [
+    { to: '/', label: 'Projects' },
+    { to: '/settings', label: 'Settings' },
+  ];
+
   return (
     <div className="h-full flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
-        <Link to="/" className="text-xl font-bold text-gray-800 tracking-tight">
-          Kanban-PMP
+      <header className="bg-gray-900 px-6 py-3 flex items-center justify-between flex-shrink-0 shadow-lg shadow-gray-900/10 gap-6">
+        <Link to="/" className="text-xl font-bold text-white tracking-tight hover:text-blue-300 transition-colors flex-shrink-0">
+          Kanban<span className="text-blue-400">-PMP</span>
         </Link>
-        <nav className="text-sm text-gray-500">
-          <Link to="/" className="hover:text-gray-800">Projects</Link>
+        <div className="flex-1 flex justify-center">
+          <SearchBox />
+        </div>
+        <nav className="flex items-center gap-1 flex-shrink-0">
+          {navLinks.map((link) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'text-white bg-white/10'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
       </header>
       <main className="flex-1 min-h-0 px-6 py-4">
