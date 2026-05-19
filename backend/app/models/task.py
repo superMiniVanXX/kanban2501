@@ -45,3 +45,10 @@ class Task(Base):
 
     project = relationship("Project", back_populates="tasks", foreign_keys=[project_id])
     sub_project = relationship("Project", foreign_keys=[sub_project_id])
+    code_projects = relationship("CodeProject", secondary="task_code_projects", backref="related_tasks")
+
+
+class TaskCodeProject(Base):
+    __tablename__ = "task_code_projects"
+    task_id: Mapped[str] = mapped_column(String(36), ForeignKey("tasks.id", ondelete="CASCADE"), primary_key=True)
+    code_project_id: Mapped[str] = mapped_column(String(36), ForeignKey("code_projects.id", ondelete="CASCADE"), primary_key=True)

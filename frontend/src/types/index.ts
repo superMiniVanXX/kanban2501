@@ -38,6 +38,7 @@ export interface Task {
   sub_project_id: string | null;
   acceptance_criteria: string | null;
   implementation_plan: string | null;
+  code_projects: { id: string; name: string }[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -64,6 +65,20 @@ export type ProjectCreate = Pick<Project, 'name'> & {
   parent_id?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+};
+
+export interface CodeProject {
+  id: string;
+  name: string;
+  description: string | null;
+  repo_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CodeProjectCreate = Pick<CodeProject, 'name'> & {
+  description?: string;
+  repo_url?: string;
 };
 
 export interface ExecutionConfig {

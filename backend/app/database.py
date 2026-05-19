@@ -86,3 +86,26 @@ def ensure_schema():
                 ")"
             ))
             conn.commit()
+        trp_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(code_projects)"))]
+        if not trp_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS code_projects ("
+                "id VARCHAR(36) PRIMARY KEY, "
+                "name VARCHAR(200) NOT NULL, "
+                "description TEXT, "
+                "repo_url VARCHAR(500), "
+                "created_at DATETIME, "
+                "updated_at DATETIME"
+                ")"
+            ))
+            conn.commit()
+        tcp_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(task_code_projects)"))]
+        if not tcp_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS task_code_projects ("
+                "task_id VARCHAR(36) NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, "
+                "code_project_id VARCHAR(36) NOT NULL REFERENCES code_projects(id) ON DELETE CASCADE, "
+                "PRIMARY KEY (task_id, code_project_id)"
+                ")"
+            ))
+            conn.commit()

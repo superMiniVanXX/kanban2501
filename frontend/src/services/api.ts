@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult } from '../types';
+import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate } from '../types';
 
 const api = axios.create({ baseURL: '/api/v1' });
 
@@ -67,6 +67,19 @@ export const getActivityLogs = (projectId: string, limit = 50) =>
 // Board
 export const getBoard = (projectId: string) =>
   api.get<Board>(`/projects/${projectId}/board`).then((r) => r.data);
+
+// Code Projects
+export const getCodeProjects = () =>
+  api.get<CodeProject[]>('/code-projects').then((r) => r.data);
+
+export const createCodeProject = (data: CodeProjectCreate) =>
+  api.post<CodeProject>('/code-projects', data).then((r) => r.data);
+
+export const updateCodeProject = (id: string, data: Partial<CodeProjectCreate>) =>
+  api.put<CodeProject>(`/code-projects/${id}`, data).then((r) => r.data);
+
+export const deleteCodeProject = (id: string) =>
+  api.delete(`/code-projects/${id}`);
 
 // Search
 export const searchTasks = (q: string) =>

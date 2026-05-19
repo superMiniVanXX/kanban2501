@@ -65,9 +65,9 @@ export default function TaskCard({ task, onClick, executionConfigs }: Props) {
   };
 
   return (
-    <div className={`${ps.bg} rounded-xl shadow-sm hover:shadow-lg border border-gray-200/80 transition-all duration-200 overflow-hidden group relative`}>
+    <div className={`${ps.bg} rounded-xl shadow-sm hover:shadow-lg border border-gray-200/80 transition-all duration-200 group relative`}>
       {/* Priority top bar */}
-      <div className={`h-1 ${ps.bar}`} />
+      <div className={`h-1 ${ps.bar} rounded-t-xl`} />
 
       <div
         className="p-3.5 cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
@@ -137,6 +137,25 @@ export default function TaskCard({ task, onClick, executionConfigs }: Props) {
             <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-md text-xs font-medium">{task.assignee}</span>
           )}
         </div>
+
+        {task.code_projects && task.code_projects.length > 0 && (
+          <div className="flex items-center flex-wrap gap-1 mt-1.5">
+            {task.code_projects.slice(0, 3).map((rp) => (
+              <span
+                key={rp.id}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-md bg-teal-50 text-teal-700 border border-teal-200 font-medium"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                {rp.name}
+              </span>
+            ))}
+            {task.code_projects.length > 3 && (
+              <span className="text-xs text-gray-400 font-medium">
+                +{task.code_projects.length - 3} more
+              </span>
+            )}
+          </div>
+        )}
 
         {task.sub_project_id && (
           <Link

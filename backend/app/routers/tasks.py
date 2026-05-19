@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.database import get_db
-from app.models.task import Task
+from app.models.task import Task, TaskCodeProject
 from app.models.project import Project
 from app.models.execution_config import ExecutionConfig
 from app.schemas.task import TaskCreate, TaskUpdate, TaskStatusUpdate, TaskMove, TaskResponse, TaskSearchResponse
@@ -68,8 +68,14 @@ def list_tasks(project_id: str, status: str | None = None, db: Session = Depends
 
 @router.post("/projects/{project_id}/tasks", response_model=TaskResponse, status_code=201)
 def create_task(project_id: str, data: TaskCreate, db: Session = Depends(get_db)):
-    task = Task(project_id=project_id, **data.model_dump())
+    task_data = data.model_dump()
+    cp_ids = task_data.pop("code_project_ids", None)
+    task = Task(project_id=project_id, **task_data)
     db.add(task)
+    db.flush()
+    if cp_ids:
+        for cp_id in cp_ids:
+            db.add(TaskCodeProject(task_id=task.id, code_project_id=cp_id))
     db.commit()
     db.refresh(task)
     log_activity(db, project_id, "task_created", "task", task.id, task.title,
@@ -91,8 +97,13 @@ def update_task(task_id: str, data: TaskUpdate, db: Session = Depends(get_db)):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     update_data = data.model_dump(exclude_unset=True)
+    code_project_ids = update_data.pop("code_project_ids", None)
     for k, v in update_data.items():
         setattr(task, k, v)
+    if code_project_ids is not None:
+        db.query(TaskCodeProject).filter(TaskCodeProject.task_id == task_id).delete()
+        for cp_id in code_project_ids:
+            db.add(TaskCodeProject(task_id=task_id, code_project_id=cp_id))
     db.commit()
     db.refresh(task)
     return task

@@ -2,6 +2,12 @@ from datetime import date, datetime
 from pydantic import BaseModel, Field
 
 
+class CodeProjectBrief(BaseModel):
+    id: str
+    name: str
+    model_config = {"from_attributes": True}
+
+
 class TaskCreate(BaseModel):
     title: str = Field(max_length=300)
     description: str | None = None
@@ -15,6 +21,7 @@ class TaskCreate(BaseModel):
     sub_project_id: str | None = None
     acceptance_criteria: str | None = None
     implementation_plan: str | None = None
+    code_project_ids: list[str] | None = None
 
 
 class TaskUpdate(BaseModel):
@@ -32,6 +39,7 @@ class TaskUpdate(BaseModel):
     sub_project_id: str | None = None
     acceptance_criteria: str | None = None
     implementation_plan: str | None = None
+    code_project_ids: list[str] | None = None
 
 
 class TaskStatusUpdate(BaseModel):
@@ -64,6 +72,7 @@ class TaskResponse(BaseModel):
     sub_project_id: str | None
     acceptance_criteria: str | None
     implementation_plan: str | None
+    code_projects: list[CodeProjectBrief] | None = None
     created_at: datetime
     updated_at: datetime
 
