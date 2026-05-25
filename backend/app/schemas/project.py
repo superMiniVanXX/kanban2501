@@ -37,6 +37,12 @@ class ProjectResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ProjectProgressResponse(BaseModel):
+    total_estimated_hours: float = 0.0
+    completed_estimated_hours: float = 0.0
+    progress: int = 0
+
+
 class ProjectTreeResponse(BaseModel):
     id: str
     name: str

@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models.task import Task, TaskCodeProject
 from app.models.project import Project
 from app.models.execution_config import ExecutionConfig
+from app.models.task_status_history import TaskStatusHistory
 from app.schemas.task import TaskCreate, TaskUpdate, TaskStatusUpdate, TaskMove, TaskResponse, TaskSearchResponse
 from app.schemas.execution_config import ExecuteRequest, ExecuteResponse
 from app.services.activity_service import log_activity
@@ -31,6 +32,7 @@ def search_tasks(q: str, db: Session = Depends(get_db)):
         db.query(Task, Project.name.label("project_name"))
         .join(Project, Task.project_id == Project.id)
         .filter(
+            Task.deleted_at.is_(None),
             or_(
                 Task.title.ilike(keyword),
                 Task.description.ilike(keyword),
@@ -60,7 +62,7 @@ def search_tasks(q: str, db: Session = Depends(get_db)):
 
 @router.get("/projects/{project_id}/tasks", response_model=list[TaskResponse])
 def list_tasks(project_id: str, status: str | None = None, db: Session = Depends(get_db)):
-    q = db.query(Task).filter(Task.project_id == project_id)
+    q = db.query(Task).filter(Task.project_id == project_id, Task.deleted_at.is_(None))
     if status:
         q = q.filter(Task.status == status)
     return q.order_by(Task.sort_order, Task.created_at).all()
@@ -114,13 +116,10 @@ def delete_task(task_id: str, db: Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    project_id = task.project_id
-    title = task.title
-    old_status = task.status
-    db.delete(task)
+    task.deleted_at = datetime.utcnow()
     db.commit()
-    log_activity(db, project_id, "task_deleted", "task", task_id, title,
-                 f"Task '{title}' deleted (was {old_status})")
+    log_activity(db, task.project_id, "task_deleted", "task", task_id, task.title,
+                 f"Task '{task.title}' deleted (was {task.status})")
 
 
 @router.put("/tasks/{task_id}/status", response_model=TaskResponse)
@@ -134,6 +133,7 @@ def change_task_status(task_id: str, data: TaskStatusUpdate, db: Session = Depen
     if error:
         raise HTTPException(status_code=422, detail=error)
     old_status = task.status
+    old_progress = task.progress
     task.status = data.status
     if data.status == "done":
         task.completed_at = datetime.utcnow()
@@ -142,6 +142,16 @@ def change_task_status(task_id: str, data: TaskStatusUpdate, db: Session = Depen
         task.completed_at = None
     db.commit()
     db.refresh(task)
+    db.add(TaskStatusHistory(
+        task_id=task.id,
+        project_id=task.project_id,
+        old_status=old_status,
+        new_status=task.status,
+        old_progress=old_progress,
+        new_progress=task.progress,
+        changed_at=datetime.utcnow(),
+    ))
+    db.commit()
     log_activity(db, task.project_id, "task_status_changed", "task", task.id, task.title,
                  f"'{task.title}': {old_status} → {task.status}",
                  {"old_status": old_status, "new_status": task.status})

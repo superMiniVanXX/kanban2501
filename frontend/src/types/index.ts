@@ -136,3 +136,38 @@ export interface SearchResult {
   sub_project_id: string | null;
   project_name: string;
 }
+
+export interface DailyStats {
+  date: string;
+  completed_count: number;
+  progress_delta: number;
+}
+
+export interface WeeklyStats {
+  week: string;
+  completed_count: number;
+  progress_delta: number;
+}
+
+export interface MonthlyStats {
+  month: string;
+  completed_count: number;
+  progress_delta: number;
+}
+
+export interface ProjectProgress {
+  total_estimated_hours: number;
+  completed_estimated_hours: number;
+  progress: number;
+}
+
+export interface TrashData {
+  projects: Project[];
+  tasks: Task[];
+}
+
+export interface Statistics {
+  daily: DailyStats[];
+  weekly: WeeklyStats[];
+  monthly: MonthlyStats[];
+}

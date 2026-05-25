@@ -12,7 +12,6 @@ export default function KanbanBoard() {
   const { id: projectId } = useParams<{ id: string }>();
   const [board, setBoard] = useState<Board | null>(null);
   const [loading, setLoading] = useState(true);
-  const initialMount = useRef(true);
   const [showCreate, setShowCreate] = useState(false);
   const [createStatus, setCreateStatus] = useState<string>('backlog');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -48,17 +47,26 @@ export default function KanbanBoard() {
     return () => document.removeEventListener('mousedown', handler);
   }, [showCodeProjectDropdown]);
 
-  // Fetch board — silent on subsequent project changes
+  // Fetch board
   useEffect(() => {
     if (!projectId) return;
-    if (initialMount.current) {
-      setLoading(true);
-    }
-    getBoard(projectId).then((data) => {
-      setBoard(data);
-      setLoading(false);
-      initialMount.current = false;
-    });
+
+    let cancelled = false;
+    setLoading(true);
+
+    getBoard(projectId)
+      .then((data) => {
+        if (cancelled) return;
+        setBoard(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Failed to fetch board:', err);
+        setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [projectId]);
 
   // Fetch tree and configs only once on mount

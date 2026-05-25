@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate } from '../types';
+import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate, Statistics, ProjectProgress, TrashData } from '../types';
 
 const api = axios.create({ baseURL: '/api/v1' });
 
@@ -21,6 +21,9 @@ export const deleteProject = (id: string) =>
 
 export const getProjectTree = () =>
   api.get<ProjectTree[]>('/projects/tree').then((r) => r.data);
+
+export const getProjectProgress = (projectId: string) =>
+  api.get<ProjectProgress>(`/projects/${projectId}/progress`).then((r) => r.data);
 
 // Tasks
 export const getTasks = (projectId: string, status?: string) =>
@@ -84,3 +87,17 @@ export const deleteCodeProject = (id: string) =>
 // Search
 export const searchTasks = (q: string) =>
   api.get<SearchResult[]>('/tasks/search', { params: { q } }).then((r) => r.data);
+
+// Statistics
+export const getStatistics = (projectId?: string) =>
+  api.get<Statistics>('/statistics', { params: projectId ? { project_id: projectId } : {} }).then((r) => r.data);
+
+// Trash
+export const getTrash = () =>
+  api.get<TrashData>('/trash').then((r) => r.data);
+
+export const restoreProject = (id: string) =>
+  api.post<Project>(`/projects/${id}/restore`).then((r) => r.data);
+
+export const restoreTask = (id: string) =>
+  api.post<Task>(`/tasks/${id}/restore`).then((r) => r.data);

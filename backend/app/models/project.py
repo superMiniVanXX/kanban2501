@@ -20,6 +20,8 @@ class Project(Base):
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     parent_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
 
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

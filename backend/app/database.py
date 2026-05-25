@@ -109,3 +109,24 @@ def ensure_schema():
                 ")"
             ))
             conn.commit()
+        if "deleted_at" not in cols:
+            conn.execute(text("ALTER TABLE projects ADD COLUMN deleted_at DATETIME"))
+            conn.commit()
+        if "deleted_at" not in task_cols:
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN deleted_at DATETIME"))
+            conn.commit()
+        tsh_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(task_status_history)"))]
+        if not tsh_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS task_status_history ("
+                "id VARCHAR(36) PRIMARY KEY, "
+                "task_id VARCHAR(36) NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, "
+                "project_id VARCHAR(36) NOT NULL REFERENCES projects(id) ON DELETE CASCADE, "
+                "old_status VARCHAR(20) NOT NULL, "
+                "new_status VARCHAR(20) NOT NULL, "
+                "old_progress INTEGER NOT NULL, "
+                "new_progress INTEGER NOT NULL, "
+                "changed_at DATETIME NOT NULL"
+                ")"
+            ))
+            conn.commit()

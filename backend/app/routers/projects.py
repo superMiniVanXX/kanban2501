@@ -1,10 +1,11 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.project import Project
 from app.models.task import Task
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectStatusUpdate, ProjectResponse, ProjectTreeResponse
+from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectStatusUpdate, ProjectResponse, ProjectTreeResponse, ProjectProgressResponse
 from app.services.project_service import build_project_tree, would_create_cycle
 from app.services.activity_service import log_activity
 
@@ -13,7 +14,7 @@ router = APIRouter(tags=["projects"])
 
 @router.get("/projects", response_model=list[ProjectResponse])
 def list_projects(status: str | None = None, db: Session = Depends(get_db)):
-    q = db.query(Project)
+    q = db.query(Project).filter(Project.deleted_at.is_(None))
     if status:
         q = q.filter(Project.status == status)
     return q.order_by(Project.created_at.desc()).all()
@@ -34,18 +35,20 @@ def create_project(data: ProjectCreate, db: Session = Depends(get_db)):
 
 @router.get("/projects/tree", response_model=list[ProjectTreeResponse])
 def list_project_tree(db: Session = Depends(get_db)):
-    all_projects = db.query(Project).order_by(Project.created_at.asc()).all()
+    all_projects = db.query(Project).filter(Project.deleted_at.is_(None)).order_by(Project.created_at.asc()).all()
     all_tasks = db.query(Task).all()
     tasks_by_project: dict[str, list] = {}
     for t in all_tasks:
         tasks_by_project.setdefault(t.project_id, []).append(t)
     completion_map: dict[str, bool] = {}
-    task_stats: dict[str, dict] = {}
+    hours_stats: dict[str, dict] = {}
     for pid, tasks in tasks_by_project.items():
         active = [t for t in tasks if t.status != "cancelled"]
         completion_map[pid] = len(active) > 0 and all(t.status == "done" for t in active)
-        task_stats[pid] = {"active": len(active), "done": sum(1 for t in active if t.status == "done")}
-    return build_project_tree(all_projects, completion_map, task_stats)
+        total_hours = sum(t.estimated_hours or 0 for t in active)
+        done_hours = sum(t.estimated_hours or 0 for t in active if t.status == "done")
+        hours_stats[pid] = {"total": total_hours, "done": done_hours}
+    return build_project_tree(all_projects, completion_map, hours_stats)
 
 
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
@@ -54,6 +57,32 @@ def get_project(project_id: str, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+
+def _collect_descendant_project_ids(db: Session, project_id: str) -> list[str]:
+    """Recursively collect the given project and all its descendant project IDs."""
+    ids = [project_id]
+    children = db.query(Project).filter(Project.parent_id == project_id).all()
+    for child in children:
+        ids.extend(_collect_descendant_project_ids(db, child.id))
+    return ids
+
+
+@router.get("/projects/{project_id}/progress", response_model=ProjectProgressResponse)
+def get_project_progress(project_id: str, db: Session = Depends(get_db)):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    all_ids = _collect_descendant_project_ids(db, project_id)
+    tasks = db.query(Task).filter(Task.project_id.in_(all_ids), Task.status != "cancelled").all()
+    total_hours = sum(t.estimated_hours or 0 for t in tasks)
+    done_hours = sum(t.estimated_hours or 0 for t in tasks if t.status == "done")
+    progress = round(done_hours / total_hours * 100) if total_hours > 0 else 0
+    return {
+        "total_estimated_hours": total_hours,
+        "completed_estimated_hours": done_hours,
+        "progress": progress,
+    }
 
 
 @router.put("/projects/{project_id}", response_model=ProjectResponse)
@@ -81,7 +110,7 @@ def delete_project(project_id: str, db: Session = Depends(get_db)):
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    db.delete(project)
+    project.deleted_at = datetime.utcnow()
     db.commit()
 
 

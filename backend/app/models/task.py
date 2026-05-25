@@ -40,6 +40,8 @@ class Task(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

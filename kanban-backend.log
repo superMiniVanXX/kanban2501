@@ -1,435 +1,63 @@
 INFO:     Will watch for changes in these directories: ['/home/xuxin/kanban/backend']
 INFO:     Uvicorn running on http://0.0.0.0:9527 (Press CTRL+C to quit)
-INFO:     Started reloader process [17606] using WatchFiles
-INFO:     Started server process [17618]
+INFO:     Started reloader process [62897] using WatchFiles
+INFO:     Started server process [62909]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:53312 - "GET /health HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:44554 - "GET /api/projects HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:50886 - "GET /api/v1/projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35808 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35796 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35858 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35852 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35822 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35850 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35832 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35844 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39738 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48792 - "GET /api/v1/projects/24a82df4-472d-4b76-867d-4b012d2561e8/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38236 - "GET /api/v1/projects/09bb4ce9-e5f9-4362-9403-b8f90a206ab3/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54704 - "GET /api/v1/projects/48a06f19-af82-4d22-b4cb-4715c262216f/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54708 - "GET /api/v1/projects/2159ced0-18e2-4710-aa84-df380fae5f00/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54716 - "GET /api/v1/projects/34fb855f-9c92-477c-8e5b-c63540e44960/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49516 - "GET /api/v1/projects/34fb855f-9c92-477c-8e5b-c63540e44960/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58980 - "POST /api/v1/tasks/62903bbc-657e-4a6f-8fd5-afbeabb48564/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52306 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52318 - "POST /api/v1/tasks/dadae038-6007-40ea-8eeb-8dfb10ddeda7/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45374 - "POST /api/v1/tasks/dadae038-6007-40ea-8eeb-8dfb10ddeda7/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56012 - "GET /api/v1/tasks/dadae038-6007-40ea-8eeb-8dfb10ddeda7 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52452 - "POST /api/v1/tasks/dadae038-6007-40ea-8eeb-8dfb10ddeda7/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44144 - "GET /api/v1/tasks/dadae038-6007-40ea-8eeb-8dfb10ddeda7 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44320 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44322 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39256 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39262 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39242 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39230 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39214 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39260 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57004 - "GET /api/v1/projects/3dac54cb-15fa-40aa-a82f-c9229bf72fed/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57016 - "GET /api/v1/projects/6228f3bf-43dc-4e76-b7be-57f1d462fc45/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57026 - "GET /api/v1/projects/f29cafb1-48e5-434a-9ff6-3b2ff4bb2fb6/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57042 - "GET /api/v1/projects/2159ced0-18e2-4710-aa84-df380fae5f00/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:32874 - "GET /api/v1/tasks/search?q=onr HTTP/1.1" 200 OK
-INFO:     127.0.0.1:32886 - "GET /api/v1/tasks/search?q=%E6%96%AD HTTP/1.1" 200 OK
-INFO:     127.0.0.1:32888 - "GET /api/v1/tasks/search?q=%E6%96%AD%E5%BC%80 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55400 - "GET /api/v1/tasks/search?q=%E9%80%9A HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55412 - "GET /api/v1/tasks/search?q=%E9%80%9A%E7%9F%A5 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:32994 - "GET /api/v1/projects/49c4da16-5d27-4fe4-ae97-90512f8e097e/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54470 - "GET /api/v1/tasks/search?q=%E9%80%9A HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54472 - "GET /api/v1/tasks/search?q=%E9%80%9A%E7%9F%A5 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54486 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48010 - "POST /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/tasks HTTP/1.1" 201 Created
-INFO:     127.0.0.1:48012 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48022 - "POST /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38850 - "GET /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55406 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48168 - "PUT /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48174 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48182 - "POST /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38858 - "GET /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37754 - "GET /api/v1/projects/2159ced0-18e2-4710-aa84-df380fae5f00/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48784 - "GET /api/v1/projects/2159ced0-18e2-4710-aa84-df380fae5f00/activity-logs?limit=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48782 - "GET /api/v1/projects/2159ced0-18e2-4710-aa84-df380fae5f00/activity-logs?limit=50 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48792 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45396 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45404 - "POST /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52714 - "GET /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55410 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55416 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50436 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50464 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50432 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50446 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50468 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50456 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50480 - "GET /api/v1/projects/2159ced0-18e2-4710-aa84-df380fae5f00/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48736 - "POST /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53422 - "GET /api/v1/tasks/7df18684-80a0-445b-af9f-8d6e7cbca808 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43670 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43672 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43626 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43646 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43656 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43636 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-WARNING:  WatchFiles detected changes in 'app/models/__init__.py', 'app/models/task.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [17618]
-INFO:     Started server process [80239]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/database.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [80239]
-INFO:     Started server process [80295]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/schemas/task.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [80295]
-INFO:     Started server process [80442]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/schemas/task.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [80442]
-INFO:     Started server process [80510]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/routers/tasks.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [80510]
-INFO:     Started server process [80582]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/board_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [80582]
-INFO:     Started server process [80603]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:39132 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39146 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39124 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39102 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39118 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39134 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41160 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41186 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41144 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41126 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41132 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:41174 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52020 - "GET /api/v1/projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37466 - "GET /api/v1/projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37470 - "POST /api/v1/projects/3dac54cb-15fa-40aa-a82f-c9229bf72fed/tasks HTTP/1.1" 201 Created
-INFO:     127.0.0.1:36934 - "GET /api/v1/tasks/17f2f668-7ca2-4e77-9209-77ad30f58b70 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58996 - "PUT /api/v1/tasks/17f2f668-7ca2-4e77-9209-77ad30f58b70 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59006 - "DELETE /api/v1/tasks/17f2f668-7ca2-4e77-9209-77ad30f58b70 HTTP/1.1" 204 No Content
-INFO:     127.0.0.1:47728 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47710 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47682 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47680 - "GET /api/v1/projects/08350dba-df93-4e46-80d0-d4159d566e5d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47696 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47726 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47736 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47752 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47760 - "GET /api/v1/projects HTTP/1.1" 200 OK
-WARNING:  WatchFiles detected changes in 'app/database.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [80603]
-INFO:     Started server process [84502]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/models/code_project.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [84502]
-INFO:     Started server process [84524]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/models/task.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [84524]
-Process SpawnProcess-10:
-Traceback (most recent call last):
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
-    self.run()
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
-    target(sockets=sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 66, in run
-    return asyncio.run(self.serve(sockets=sockets))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 195, in run
-    return runner.run(main)
-           ^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 70, in serve
-    await self._serve(sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 77, in _serve
-    config.load()
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 435, in load
-    self.loaded_app = import_from_string(self.app)
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/home/xuxin/kanban/backend/app/main.py", line 11, in <module>
-    from app.routers import projects, tasks, board, execution_configs, activity
-  File "/home/xuxin/kanban/backend/app/routers/projects.py", line 5, in <module>
-    from app.models.project import Project
-  File "/home/xuxin/kanban/backend/app/models/__init__.py", line 2, in <module>
-    from app.models.task import Task, TaskRelatedProject
-ImportError: cannot import name 'TaskRelatedProject' from 'app.models.task' (/home/xuxin/kanban/backend/app/models/task.py)
-WARNING:  WatchFiles detected changes in 'app/models/__init__.py'. Reloading...
-Process SpawnProcess-11:
-Traceback (most recent call last):
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
-    self.run()
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
-    target(sockets=sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 66, in run
-    return asyncio.run(self.serve(sockets=sockets))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 195, in run
-    return runner.run(main)
-           ^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 70, in serve
-    await self._serve(sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 77, in _serve
-    config.load()
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 435, in load
-    self.loaded_app = import_from_string(self.app)
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/home/xuxin/kanban/backend/app/main.py", line 11, in <module>
-    from app.routers import projects, tasks, board, execution_configs, activity
-  File "/home/xuxin/kanban/backend/app/routers/tasks.py", line 9, in <module>
-    from app.models.task import Task, TaskRelatedProject
-ImportError: cannot import name 'TaskRelatedProject' from 'app.models.task' (/home/xuxin/kanban/backend/app/models/task.py)
-WARNING:  WatchFiles detected changes in 'app/schemas/code_project.py'. Reloading...
-Process SpawnProcess-12:
-Traceback (most recent call last):
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
-    self.run()
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
-    target(sockets=sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 66, in run
-    return asyncio.run(self.serve(sockets=sockets))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 195, in run
-    return runner.run(main)
-           ^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 70, in serve
-    await self._serve(sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 77, in _serve
-    config.load()
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 435, in load
-    self.loaded_app = import_from_string(self.app)
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/home/xuxin/kanban/backend/app/main.py", line 11, in <module>
-    from app.routers import projects, tasks, board, execution_configs, activity
-  File "/home/xuxin/kanban/backend/app/routers/tasks.py", line 9, in <module>
-    from app.models.task import Task, TaskRelatedProject
-ImportError: cannot import name 'TaskRelatedProject' from 'app.models.task' (/home/xuxin/kanban/backend/app/models/task.py)
-WARNING:  WatchFiles detected changes in 'app/schemas/task.py'. Reloading...
-Process SpawnProcess-13:
-Traceback (most recent call last):
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
-    self.run()
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
-    target(sockets=sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 66, in run
-    return asyncio.run(self.serve(sockets=sockets))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 195, in run
-    return runner.run(main)
-           ^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 70, in serve
-    await self._serve(sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 77, in _serve
-    config.load()
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 435, in load
-    self.loaded_app = import_from_string(self.app)
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/home/xuxin/kanban/backend/app/main.py", line 11, in <module>
-    from app.routers import projects, tasks, board, execution_configs, activity
-  File "/home/xuxin/kanban/backend/app/routers/tasks.py", line 9, in <module>
-    from app.models.task import Task, TaskRelatedProject
-ImportError: cannot import name 'TaskRelatedProject' from 'app.models.task' (/home/xuxin/kanban/backend/app/models/task.py)
-WARNING:  WatchFiles detected changes in 'app/routers/code_projects.py'. Reloading...
-Process SpawnProcess-14:
-Traceback (most recent call last):
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
-    self.run()
-  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
-    target(sockets=sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 66, in run
-    return asyncio.run(self.serve(sockets=sockets))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 195, in run
-    return runner.run(main)
-           ^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 70, in serve
-    await self._serve(sockets)
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/server.py", line 77, in _serve
-    config.load()
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/config.py", line 435, in load
-    self.loaded_app = import_from_string(self.app)
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/xuxin/kanban/backend/.venv/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/home/xuxin/kanban/backend/app/main.py", line 11, in <module>
-    from app.routers import projects, tasks, board, execution_configs, activity
-  File "/home/xuxin/kanban/backend/app/routers/tasks.py", line 9, in <module>
-    from app.models.task import Task, TaskRelatedProject
-ImportError: cannot import name 'TaskRelatedProject' from 'app.models.task' (/home/xuxin/kanban/backend/app/models/task.py)
-WARNING:  WatchFiles detected changes in 'app/routers/tasks.py'. Reloading...
-INFO:     Started server process [84805]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/routers/tasks.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [84805]
-INFO:     Started server process [84840]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/routers/tasks.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [84840]
-INFO:     Started server process [84919]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/board_service.py', 'app/main.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [84919]
-INFO:     Started server process [84972]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:39828 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39820 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46344 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:32806 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50630 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [84972]
-INFO:     Stopping reloader process [17606]
+INFO:     127.0.0.1:36892 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36898 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36924 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36918 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36940 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36914 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36948 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36928 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36912 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36904 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52142 - "POST /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:52144 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48430 - "PUT /api/v1/tasks/2e211b5b-b528-4dd6-ac42-9a7f81a121a2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48434 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57938 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50296 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50282 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50306 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50308 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50326 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50336 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50298 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50324 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50304 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50322 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50350 - "GET /api/v1/projects/09bb4ce9-e5f9-4362-9403-b8f90a206ab3/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33672 - "POST /api/v1/tasks/942c7ed3-6e31-41f4-ade6-756cbd544639/execute HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40302 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40316 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40332 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40322 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40352 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40364 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40374 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40346 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40328 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40350 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40986 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40988 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40994 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41010 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96/move HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41022 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41032 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41048 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96/move HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41052 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54106 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54110 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96/move HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54118 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54124 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54134 - "PUT /api/v1/tasks/c09c9047-2504-4460-9143-f9533cbf7b96/move HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54146 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51964 - "GET /api/v1/projects/d4127cc7-480a-402a-adb5-60de7351b606/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51978 - "POST /api/v1/tasks/1333d0e3-a7ed-411f-a5fb-9270fce8857b/execute HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53136 - "GET /api/v1/tasks/search?q=1333d0e3-a7ed-411f-a5fb-9270fce8857b HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36482 - "GET /api/v1/tasks/1333d0e3-a7ed-411f-a5fb-9270fce8857b HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38986 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38972 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
