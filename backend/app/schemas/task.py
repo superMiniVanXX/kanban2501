@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 class CodeProjectBrief(BaseModel):
     id: str
     name: str
+    path: str | None = None
     model_config = {"from_attributes": True}
 
 

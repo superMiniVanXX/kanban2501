@@ -72,6 +72,7 @@ export interface CodeProject {
   name: string;
   description: string | null;
   repo_url: string | null;
+  path: string | null;
   created_at: string;
   updated_at: string;
 }

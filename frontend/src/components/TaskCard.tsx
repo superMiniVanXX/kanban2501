@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import type { Task, ExecutionConfig, ExecuteResult } from '../types';
-import { executeTask } from '../services/api';
+import { executeTask, updateCodeProject } from '../services/api';
+import { useFixedDropdown } from '../hooks/useFixedDropdown';
 
 const PRIORITY_STYLE: Record<string, { bar: string; bg: string; badge: string; title: string; progress: string }> = {
   critical: { bar: 'bg-red-500',    bg: 'bg-white',   badge: 'bg-red-100 text-red-700 border-red-200',   title: 'text-gray-900', progress: 'bg-red-500' },
@@ -23,18 +25,31 @@ const TYPE_ICON: Record<string, string> = {
   epic: '⚡ ',
 };
 
+interface PathModalState {
+  codeProjectId: string;
+  codeProjectName: string;
+  configId: string;
+}
+
 interface Props {
   task: Task;
   onClick: (task: Task) => void;
   executionConfigs: ExecutionConfig[];
+  isPendingDeletion?: boolean;
+  onConfirmDelete?: (taskId: string) => void;
+  onUndoDelete?: (taskId: string) => void;
 }
 
-export default function TaskCard({ task, onClick, executionConfigs }: Props) {
+export default function TaskCard({ task, onClick, executionConfigs, isPendingDeletion, onConfirmDelete, onUndoDelete }: Props) {
   const ps = PRIORITY_STYLE[task.priority] ?? PRIORITY_STYLE.medium;
   const [showDropdown, setShowDropdown] = useState(false);
   const [executing, setExecuting] = useState<string | null>(null);
   const [result, setResult] = useState<ExecuteResult | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [pathModal, setPathModal] = useState<PathModalState | null>(null);
+  const [pathInput, setPathInput] = useState('');
+  const [pathSaving, setPathSaving] = useState(false);
+  const { triggerRef, elRef, style: dropdownStyle } = useFixedDropdown(showDropdown, { align: 'right' });
+  const menuRef = useRef<HTMLDivElement>(null);
   const showExecute = !task.sub_project_id && executionConfigs.length > 0;
 
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
@@ -42,7 +57,11 @@ export default function TaskCard({ task, onClick, executionConfigs }: Props) {
   useEffect(() => {
     if (!showDropdown) return;
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        !elRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
         setShowDropdown(false);
       }
     };
@@ -56,30 +75,62 @@ export default function TaskCard({ task, onClick, executionConfigs }: Props) {
     return () => clearTimeout(t);
   }, [result]);
 
-  const handleExecute = async (configId: string) => {
+  const doExecute = async (configId: string) => {
     setExecuting(configId);
+    try {
+      const r = await executeTask(task.id, configId);
+      setResult(r);
+    } catch (err: any) {
+      const detail: string = err.response?.data?.detail || err.message || 'Execution failed';
+      setResult({ stdout: '', stderr: detail, exit_code: -1, success: false });
+    } finally {
+      setExecuting(null);
+    }
+  };
+
+  const handleExecute = (configId: string) => {
     setShowDropdown(false);
-    const r = await executeTask(task.id, configId);
-    setResult(r);
-    setExecuting(null);
+    const cp = task.code_projects?.[0];
+    if (cp) {
+      setPathModal({ codeProjectId: cp.id, codeProjectName: cp.name, configId });
+      setPathInput(cp.path || '');
+      return;
+    }
+    doExecute(configId);
+  };
+
+  const handleConfirmExecute = async () => {
+    if (!pathModal || !pathInput.trim()) return;
+    setPathSaving(true);
+    try {
+      await updateCodeProject(pathModal.codeProjectId, { path: pathInput.trim() });
+      setPathModal(null);
+      setPathInput('');
+      doExecute(pathModal.configId);
+    } catch {
+      alert('Failed to save path');
+    } finally {
+      setPathSaving(false);
+    }
   };
 
   return (
-    <div className={`${ps.bg} rounded-xl shadow-sm hover:shadow-lg border border-gray-200/80 transition-all duration-200 group relative`}>
+    <div className={`${ps.bg} rounded-xl shadow-sm hover:shadow-lg border border-gray-200/80 transition-all duration-200 group relative ${isPendingDeletion ? 'opacity-50 grayscale' : ''}`}>
       {/* Priority top bar */}
       <div className={`h-1 ${ps.bar} rounded-t-xl`} />
 
       <div
-        className="p-3.5 cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
-        onClick={() => onClick(task)}
+        className={`p-3.5 transition-all duration-200 ${isPendingDeletion ? 'cursor-default' : 'cursor-pointer hover:-translate-y-0.5'}`}
+        onClick={() => { if (!isPendingDeletion) onClick(task); }}
       >
         <div className="flex items-start justify-between gap-2">
           <div className={`text-sm font-semibold ${ps.title} flex-1 min-w-0 leading-snug`}>
             {TYPE_ICON[task.task_type] ?? ''}{task.title}
           </div>
           {showExecute && (
-            <div ref={dropdownRef} className="relative flex-shrink-0">
+            <div className="relative flex-shrink-0">
               <button
+                ref={triggerRef}
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); setShowDropdown((v) => !v); }}
                 className={`w-6 h-6 flex items-center justify-center rounded-md text-xs transition-all ${
@@ -103,8 +154,8 @@ export default function TaskCard({ task, onClick, executionConfigs }: Props) {
                 )}
               </button>
 
-              {showDropdown && (
-                <div className="absolute top-full right-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+              {showDropdown && createPortal(
+                <div ref={menuRef} className="w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1" style={dropdownStyle}>
                   {executionConfigs.map((config) => (
                     <button
                       key={config.id}
@@ -115,7 +166,8 @@ export default function TaskCard({ task, onClick, executionConfigs }: Props) {
                       {config.name}
                     </button>
                   ))}
-                </div>
+                </div>,
+                document.body
               )}
             </div>
           )}
@@ -168,7 +220,67 @@ export default function TaskCard({ task, onClick, executionConfigs }: Props) {
           </Link>
         )}
 
+        {isPendingDeletion && (
+          <div className="flex items-center gap-2 mt-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); onConfirmDelete?.(task.id); }}
+              className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+            >
+              Confirm Delete
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onUndoDelete?.(task.id); }}
+              className="px-3 py-1.5 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors"
+            >
+              Undo
+            </button>
+          </div>
+        )}
+
       </div>
+
+      {/* Path configuration modal — portaled to document.body to escape Draggable containment */}
+      {pathModal && createPortal(
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { e.stopPropagation(); setPathModal(null); setPathInput(''); }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-96 p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">确认工作目录</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              代码项目 <span className="font-medium text-gray-700">{pathModal.codeProjectName}</span> 的工作目录：
+            </p>
+            <input
+              type="text"
+              value={pathInput}
+              onChange={(e) => setPathInput(e.target.value)}
+              placeholder="/home/user/project"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              autoFocus
+              onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmExecute(); }}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => { setPathModal(null); setPathInput(''); }}
+                className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleConfirmExecute}
+                disabled={!pathInput.trim() || pathSaving}
+                className="px-4 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {pathSaving ? '执行中...' : '执行'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

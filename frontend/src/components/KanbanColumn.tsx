@@ -17,9 +17,12 @@ interface Props {
   onTaskClick: (task: Task) => void;
   onQuickCreate: (status: Column['column_status']) => void;
   executionConfigs: ExecutionConfig[];
+  pendingDeletion: Set<string>;
+  onConfirmDelete: (taskId: string) => void;
+  onUndoDelete: (taskId: string) => void;
 }
 
-export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate, executionConfigs }: Props) {
+export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate, executionConfigs, pendingDeletion, onConfirmDelete, onUndoDelete }: Props) {
   const style = COLUMN_STYLE[column.column_status] ?? COLUMN_STYLE.backlog;
 
   return (
@@ -63,7 +66,7 @@ export default function KanbanColumn({ column, tasks, onTaskClick, onQuickCreate
                     {...provided.dragHandleProps}
                     className={snapshot.isDragging ? 'opacity-90 rotate-1 shadow-xl' : ''}
                   >
-                    <TaskCard task={task} onClick={onTaskClick} executionConfigs={executionConfigs} />
+                    <TaskCard task={task} onClick={onTaskClick} executionConfigs={executionConfigs} isPendingDeletion={pendingDeletion.has(task.id)} onConfirmDelete={onConfirmDelete} onUndoDelete={onUndoDelete} />
                   </div>
                 )}
               </Draggable>

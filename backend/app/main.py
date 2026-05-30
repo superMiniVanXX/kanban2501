@@ -1,4 +1,5 @@
 # backend/app/main.py
+import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -9,6 +10,11 @@ from fastapi.staticfiles import StaticFiles
 
 from app.database import ensure_schema
 from app.routers import projects, tasks, board, execution_configs, activity, code_projects, statistics, trash
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-8s [%(name)s] %(message)s",
+)
 
 
 @asynccontextmanager

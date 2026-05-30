@@ -36,7 +36,7 @@ def create_project(data: ProjectCreate, db: Session = Depends(get_db)):
 @router.get("/projects/tree", response_model=list[ProjectTreeResponse])
 def list_project_tree(db: Session = Depends(get_db)):
     all_projects = db.query(Project).filter(Project.deleted_at.is_(None)).order_by(Project.created_at.asc()).all()
-    all_tasks = db.query(Task).all()
+    all_tasks = db.query(Task).filter(Task.deleted_at.is_(None)).all()
     tasks_by_project: dict[str, list] = {}
     for t in all_tasks:
         tasks_by_project.setdefault(t.project_id, []).append(t)
@@ -74,7 +74,7 @@ def get_project_progress(project_id: str, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     all_ids = _collect_descendant_project_ids(db, project_id)
-    tasks = db.query(Task).filter(Task.project_id.in_(all_ids), Task.status != "cancelled").all()
+    tasks = db.query(Task).filter(Task.project_id.in_(all_ids), Task.status != "cancelled", Task.deleted_at.is_(None)).all()
     total_hours = sum(t.estimated_hours or 0 for t in tasks)
     done_hours = sum(t.estimated_hours or 0 for t in tasks if t.status == "done")
     progress = round(done_hours / total_hours * 100) if total_hours > 0 else 0

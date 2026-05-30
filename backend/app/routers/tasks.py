@@ -1,9 +1,12 @@
+import logging
 import subprocess
-from datetime import datetime
+from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+
+logger = logging.getLogger("kanban.tasks")
 
 from app.database import get_db
 from app.models.task import Task, TaskCodeProject
@@ -135,6 +138,8 @@ def change_task_status(task_id: str, data: TaskStatusUpdate, db: Session = Depen
     old_status = task.status
     old_progress = task.progress
     task.status = data.status
+    if data.status == "in_progress" and task.start_date is None:
+        task.start_date = date.today()
     if data.status == "done":
         task.completed_at = datetime.utcnow()
         task.progress = 100
@@ -204,6 +209,10 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
     if not config:
         raise HTTPException(status_code=404, detail="Execution config not found")
 
+    logger.info("Execute task '%s' (id=%s) with config '%s' (id=%s)",
+                task.title, task.id, config.name, config.id)
+    logger.debug("Raw command template: %s", config.command_template)
+
     replacements = {
         "{task_id}": task.id,
         "{task_title}": task.title,
@@ -227,9 +236,38 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
     for token, value in replacements.items():
         cmd = cmd.replace(token, value)
 
+    # Replace ##workdir## with the first linked code project's path
+    if "##workdir##" in cmd:
+        if not task.code_projects:
+            logger.error("##workdir## in command but task '%s' has no linked code projects", task.title)
+            raise HTTPException(
+                status_code=422,
+                detail="Command uses ##workdir## but task has no linked code projects. "
+                       "Please link a code project to this task first.",
+            )
+        workdir = task.code_projects[0].path
+        if not workdir:
+            cp_name = task.code_projects[0].name
+            logger.error("##workdir## in command but code project '%s' has no path configured", cp_name)
+            raise HTTPException(
+                status_code=422,
+                detail=f"Command uses ##workdir## but linked code project '{cp_name}' has no path configured. "
+                       f"Please set a path for code project '{cp_name}'.",
+            )
+        logger.info("##workdir## resolved to: %s (from code project '%s')",
+                    workdir, task.code_projects[0].name)
+        cmd = cmd.replace("##workdir##", workdir)
+
+    logger.info("Final command: %s", cmd)
+
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
         success = result.returncode == 0
+        logger.info("Command finished: exit_code=%d, success=%s", result.returncode, success)
+        if result.stdout:
+            logger.debug("stdout: %s", result.stdout[:500])
+        if result.stderr:
+            logger.warning("stderr: %s", result.stderr[:500])
         log_activity(db, task.project_id, "task_executed", "task", task.id, task.title,
                      f"Executed '{config.name}': {'success' if success else 'failed'}",
                      {"config_name": config.name, "success": success, "exit_code": result.returncode})
@@ -240,6 +278,7 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
             success=success,
         )
     except subprocess.TimeoutExpired:
+        logger.warning("Command timed out after 30s: %s", cmd[:200])
         log_activity(db, task.project_id, "task_executed", "task", task.id, task.title,
                      f"Executed '{config.name}': timed out",
                      {"config_name": config.name, "success": False, "error": "timeout"})
@@ -250,6 +289,7 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
             success=False,
         )
     except Exception as e:
+        logger.exception("Command execution failed: %s", e)
         log_activity(db, task.project_id, "task_executed", "task", task.id, task.title,
                      f"Executed '{config.name}': error - {e}",
                      {"config_name": config.name, "success": False, "error": str(e)})

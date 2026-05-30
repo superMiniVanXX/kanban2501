@@ -94,10 +94,14 @@ def ensure_schema():
                 "name VARCHAR(200) NOT NULL, "
                 "description TEXT, "
                 "repo_url VARCHAR(500), "
+                "path VARCHAR(1000), "
                 "created_at DATETIME, "
                 "updated_at DATETIME"
                 ")"
             ))
+            conn.commit()
+        if "path" not in trp_cols:
+            conn.execute(text("ALTER TABLE code_projects ADD COLUMN path VARCHAR(1000)"))
             conn.commit()
         tcp_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(task_code_projects)"))]
         if not tcp_cols:
@@ -115,6 +119,11 @@ def ensure_schema():
         if "deleted_at" not in task_cols:
             conn.execute(text("ALTER TABLE tasks ADD COLUMN deleted_at DATETIME"))
             conn.commit()
+        conn.execute(text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_code_projects_path "
+            "ON code_projects(path) WHERE path IS NOT NULL"
+        ))
+        conn.commit()
         tsh_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(task_status_history)"))]
         if not tsh_cols:
             conn.execute(text(

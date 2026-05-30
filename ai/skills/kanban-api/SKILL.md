@@ -181,9 +181,11 @@ curl -s -X POST http://localhost:9527/api/v1/tasks/{id}/execute \
 # → {stdout, stderr, exit_code, success}
 # Placeholders: {task_id}, {task_title}, {task_status}, {task_priority},
 #   {task_type}, {task_assignee}, {task_description},
-#   {task_acceptance_criteria}, {task_due_date}, {task_start_date},
-#   {task_estimated_hours}, {task_actual_hours}, {task_progress},
-#   {task_tags}, {project_id}
+#   {task_acceptance_criteria}, {task_implementation_plan},
+#   {task_due_date}, {task_start_date}, {task_estimated_hours},
+#   {task_actual_hours}, {task_progress}, {task_tags}, {project_id}
+# ##workdir## — replaced with the first linked code project's path;
+#   empty string if no code project is linked or path is unset
 ```
 
 ### Activity Logs

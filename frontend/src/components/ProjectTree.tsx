@@ -4,15 +4,25 @@ import type { ProjectTree as ProjectTreeType } from '../types';
 
 interface TreeProps {
   projects: ProjectTreeType[];
+  parentProject: ProjectTreeType | null;
   onDetach: (id: string) => Promise<void>;
 }
 
-export default function ProjectTree({ projects, onDetach }: TreeProps) {
+export default function ProjectTree({ projects, parentProject, onDetach }: TreeProps) {
   return (
     <div className="text-sm">
       <div className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200/60">
         Projects
       </div>
+      {parentProject && (
+        <Link
+          to={`/projects/${parentProject.id}/board`}
+          className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 border-b border-gray-200/60 transition-colors font-medium"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          <span className="truncate">{parentProject.name}</span>
+        </Link>
+      )}
       {projects.map((p) => (
         <TreeNode key={p.id} project={p} depth={0} onDetach={onDetach} />
       ))}

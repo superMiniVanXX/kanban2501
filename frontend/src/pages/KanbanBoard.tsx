@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { getBoard, getProjectTree, changeTaskStatus, moveTask, createTask, updateTask, deleteTask, updateProject, createProject, createSubProject, getExecutionConfigs, getCodeProjects } from '../services/api';
@@ -7,6 +7,7 @@ import KanbanColumn from '../components/KanbanColumn';
 import CreateTaskModal from '../components/CreateTaskModal';
 import ProjectTree from '../components/ProjectTree';
 import ActivityLog from '../components/ActivityLog';
+import { useFixedDropdown } from '../hooks/useFixedDropdown';
 
 export default function KanbanBoard() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -20,12 +21,15 @@ export default function KanbanBoard() {
   const [codeProjects, setCodeProjects] = useState<CodeProject[]>([]);
   const [logRefresh, setLogRefresh] = useState(0);
   const [showActivityLog, setShowActivityLog] = useState(false);
+  const [pendingDeletion, setPendingDeletion] = useState<Set<string>>(new Set());
 
   const [editingImplPlan, setEditingImplPlan] = useState(false);
   const [implPlanDraft, setImplPlanDraft] = useState('');
 
   const [showCodeProjectDropdown, setShowRelatedDropdown] = useState(false);
-  const codeProjectDropdownRef = useRef<HTMLDivElement>(null);
+  const [codeProjectSearch, setCodeProjectSearch] = useState('');
+  const { triggerRef: codeProjectTriggerRef, elRef: codeProjectElRef, style: codeProjectDropdownStyle } = useFixedDropdown(showCodeProjectDropdown, { align: 'left' });
+  const codeProjectMenuRef = useRef<HTMLDivElement>(null);
 
   const [statusError, setStatusError] = useState<string | null>(null);
 
@@ -39,7 +43,11 @@ export default function KanbanBoard() {
   useEffect(() => {
     if (!showCodeProjectDropdown) return;
     const handler = (e: MouseEvent) => {
-      if (codeProjectDropdownRef.current && !codeProjectDropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        !codeProjectElRef.current?.contains(target) &&
+        !codeProjectMenuRef.current?.contains(target)
+      ) {
         setShowRelatedDropdown(false);
       }
     };
@@ -52,7 +60,7 @@ export default function KanbanBoard() {
     if (!projectId) return;
 
     let cancelled = false;
-    setLoading(true);
+    if (!board) setLoading(true);
 
     getBoard(projectId)
       .then((data) => {
@@ -201,13 +209,61 @@ export default function KanbanBoard() {
     await silentRefresh();
   };
 
-  const handleDeleteTask = async () => {
+  const handleDeleteTask = () => {
     if (!editingTask) return;
-    await deleteTask(editingTask.id);
+    setPendingDeletion((prev) => new Set(prev).add(editingTask.id));
     setEditingTask(null);
+  };
+
+  const handleConfirmDelete = async (taskId: string) => {
+    await deleteTask(taskId);
+    setPendingDeletion((prev) => {
+      const next = new Set(prev);
+      next.delete(taskId);
+      return next;
+    });
     await silentRefresh();
     setLogRefresh((c) => c + 1);
   };
+
+  const handleUndoDelete = (taskId: string) => {
+    setPendingDeletion((prev) => {
+      const next = new Set(prev);
+      next.delete(taskId);
+      return next;
+    });
+  };
+
+  const filteredCodeProjects = useMemo(() => {
+    const selectedIds = new Set((editingTask?.code_projects || []).map((p) => p.id));
+    const searchLower = codeProjectSearch.toLowerCase();
+    return codeProjects.filter(
+      (p) => !selectedIds.has(p.id) && (!searchLower || p.name.toLowerCase().includes(searchLower))
+    );
+  }, [codeProjects, codeProjectSearch, editingTask?.code_projects]);
+
+  // Build sidebar: when inside a sub-project, show back-to-parent link + siblings
+  const { sidebarParent, sidebarItems } = useMemo(() => {
+    if (!projectId) return { sidebarParent: null as ProjectTreeType | null, sidebarItems: projectTree };
+    const isRoot = projectTree.some((n) => n.id === projectId);
+    if (isRoot) {
+      const root = projectTree.find((n) => n.id === projectId)!;
+      return { sidebarParent: null, sidebarItems: [root] };
+    }
+    const findParent = (nodes: ProjectTreeType[], id: string): { parent: ProjectTreeType; siblings: ProjectTreeType[] } | null => {
+      for (const node of nodes) {
+        for (const child of node.children) {
+          if (child.id === id) return { parent: node, siblings: node.children };
+        }
+        const found = findParent(node.children, id);
+        if (found) return found;
+      }
+      return null;
+    };
+    const result = findParent(projectTree, projectId);
+    if (result) return { sidebarParent: result.parent, sidebarItems: result.siblings };
+    return { sidebarParent: null, sidebarItems: projectTree };
+  }, [projectTree, projectId]);
 
   // Find parent project from tree data
   const findParentId = (nodes: ProjectTreeType[], targetId: string): string | null => {
@@ -320,7 +376,7 @@ export default function KanbanBoard() {
       {/* Main area: sidebar tree + kanban columns */}
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-64 border-r border-gray-200 bg-gray-50/80 overflow-y-auto flex-shrink-0 pb-4">
-          <ProjectTree projects={projectTree} onDetach={handleDetach} />
+          <ProjectTree projects={sidebarItems} parentProject={sidebarParent} onDetach={handleDetach} />
         </aside>
 
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -333,6 +389,9 @@ export default function KanbanBoard() {
                 onTaskClick={setEditingTask}
                 onQuickCreate={handleQuickCreate}
                 executionConfigs={executionConfigs}
+                pendingDeletion={pendingDeletion}
+                onConfirmDelete={handleConfirmDelete}
+                onUndoDelete={handleUndoDelete}
               />
             ))}
           </div>
@@ -663,9 +722,10 @@ export default function KanbanBoard() {
                     </span>
                   ))}
                 </div>
-                <div ref={codeProjectDropdownRef} className="relative inline-block">
+                <div className="relative inline-block">
                   <button
-                    onClick={() => setShowRelatedDropdown((v) => !v)}
+                    ref={codeProjectTriggerRef}
+                    onClick={() => { setShowRelatedDropdown((v) => !v); setCodeProjectSearch(''); }}
                     className="flex items-center gap-1 px-3 py-1.5 text-xs text-teal-600 border border-teal-200 rounded-lg hover:bg-teal-50 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -674,12 +734,24 @@ export default function KanbanBoard() {
                     Add Project
                   </button>
                   {showCodeProjectDropdown && (
-                    <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50 max-h-48 overflow-y-auto">
-                      {(() => {
-                        const selectedIds = new Set((editingTask.code_projects || []).map((p) => p.id));
-                        return codeProjects
-                          .filter((p) => !selectedIds.has(p.id))
-                          .map((p) => (
+                    <div ref={codeProjectMenuRef} className="w-56 bg-white rounded-lg shadow-xl border border-gray-200" style={codeProjectDropdownStyle}>
+                      <div className="px-2 py-1.5 border-b border-gray-100">
+                        <input
+                          type="text"
+                          value={codeProjectSearch}
+                          onChange={(e) => setCodeProjectSearch(e.target.value)}
+                          placeholder="Filter projects..."
+                          className="w-full px-2 py-1 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-teal-400 focus:border-transparent"
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      <div className="max-h-48 overflow-y-auto py-1">
+                      {filteredCodeProjects.length === 0 ? (
+                        <div className="px-3 py-2 text-xs text-gray-400">No matching projects</div>
+                      ) : (
+                        filteredCodeProjects.map((p) => (
                             <button
                               key={p.id}
                               onClick={async () => {
@@ -704,11 +776,24 @@ export default function KanbanBoard() {
                               </svg>
                               {p.name}
                             </button>
-                          ));
-                      })()}
+                          ))
+                      )}
+                      </div>
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Timestamps */}
+              <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-400">
+                <div>Created: {new Date(editingTask.created_at + 'Z').toLocaleString()}</div>
+                <div>Updated: {new Date(editingTask.updated_at + 'Z').toLocaleString()}</div>
+                {editingTask.start_date && (
+                  <div>Start: {editingTask.start_date.slice(0, 10)}</div>
+                )}
+                {editingTask.completed_at && (
+                  <div>Completed: {new Date(editingTask.completed_at + 'Z').toLocaleString()}</div>
+                )}
               </div>
 
               <button
