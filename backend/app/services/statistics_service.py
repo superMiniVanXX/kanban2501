@@ -3,11 +3,29 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, case
 from app.models.task_status_history import TaskStatusHistory
 from app.models.task import Task
+from app.models.project import Project
 
 
 def get_statistics(db: Session, project_id: str | None = None) -> dict:
-    base = db.query(TaskStatusHistory)
-    task_q = db.query(func.count(Task.id)).filter(Task.status.notin_(["done", "cancelled"]))
+    excluded_task_ids = (
+        db.query(Task.id)
+        .filter(Task.exclude_from_stats == True)  # noqa: E712
+        .subquery()
+    )
+    excluded_project_ids = (
+        db.query(Project.id)
+        .filter(Project.exclude_from_stats == True)  # noqa: E712
+        .subquery()
+    )
+
+    base = db.query(TaskStatusHistory).filter(
+        TaskStatusHistory.task_id.notin_(excluded_task_ids),
+        TaskStatusHistory.project_id.notin_(excluded_project_ids),
+    )
+    task_q = db.query(func.count(Task.id)).filter(
+        Task.status.notin_(["done", "cancelled"]),
+        Task.exclude_from_stats == False,  # noqa: E712
+    )
     if project_id:
         base = base.filter(TaskStatusHistory.project_id == project_id)
         task_q = task_q.filter(Task.project_id == project_id)

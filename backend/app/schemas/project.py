@@ -9,6 +9,7 @@ class ProjectCreate(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     parent_id: str | None = None
+    exclude_from_stats: bool = False
 
 
 class ProjectUpdate(BaseModel):
@@ -17,6 +18,7 @@ class ProjectUpdate(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     parent_id: str | None = None
+    exclude_from_stats: bool | None = None
 
 
 class ProjectStatusUpdate(BaseModel):
@@ -31,6 +33,7 @@ class ProjectResponse(BaseModel):
     parent_id: str | None
     start_date: date | None
     end_date: date | None
+    exclude_from_stats: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -51,6 +54,7 @@ class ProjectTreeResponse(BaseModel):
     parent_id: str | None
     start_date: date | None
     end_date: date | None
+    exclude_from_stats: bool = False
     created_at: datetime
     updated_at: datetime
     is_completed: bool = False

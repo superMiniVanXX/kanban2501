@@ -119,6 +119,15 @@ def ensure_schema():
         if "deleted_at" not in task_cols:
             conn.execute(text("ALTER TABLE tasks ADD COLUMN deleted_at DATETIME"))
             conn.commit()
+        # Re-fetch cols/task_cols after potential modifications above
+        cols = [row[1] for row in conn.execute(text("PRAGMA table_info(projects)"))]
+        task_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(tasks)"))]
+        if "exclude_from_stats" not in cols:
+            conn.execute(text("ALTER TABLE projects ADD COLUMN exclude_from_stats BOOLEAN DEFAULT 0"))
+            conn.commit()
+        if "exclude_from_stats" not in task_cols:
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN exclude_from_stats BOOLEAN DEFAULT 0"))
+            conn.commit()
         conn.execute(text(
             "CREATE UNIQUE INDEX IF NOT EXISTS ix_code_projects_path "
             "ON code_projects(path) WHERE path IS NOT NULL"

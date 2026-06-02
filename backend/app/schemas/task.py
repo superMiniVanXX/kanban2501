@@ -23,6 +23,7 @@ class TaskCreate(BaseModel):
     acceptance_criteria: str | None = None
     implementation_plan: str | None = None
     code_project_ids: list[str] | None = None
+    exclude_from_stats: bool = False
 
 
 class TaskUpdate(BaseModel):
@@ -41,6 +42,7 @@ class TaskUpdate(BaseModel):
     acceptance_criteria: str | None = None
     implementation_plan: str | None = None
     code_project_ids: list[str] | None = None
+    exclude_from_stats: bool | None = None
 
 
 class TaskStatusUpdate(BaseModel):
@@ -73,6 +75,7 @@ class TaskResponse(BaseModel):
     sub_project_id: str | None
     acceptance_criteria: str | None
     implementation_plan: str | None
+    exclude_from_stats: bool = False
     code_projects: list[CodeProjectBrief] | None = None
     created_at: datetime
     updated_at: datetime

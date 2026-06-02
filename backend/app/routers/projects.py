@@ -40,10 +40,13 @@ def list_project_tree(db: Session = Depends(get_db)):
     tasks_by_project: dict[str, list] = {}
     for t in all_tasks:
         tasks_by_project.setdefault(t.project_id, []).append(t)
+    excluded_project_ids = {p.id for p in all_projects if p.exclude_from_stats}
     completion_map: dict[str, bool] = {}
     hours_stats: dict[str, dict] = {}
     for pid, tasks in tasks_by_project.items():
-        active = [t for t in tasks if t.status != "cancelled"]
+        if pid in excluded_project_ids:
+            continue
+        active = [t for t in tasks if t.status != "cancelled" and not t.exclude_from_stats]
         completion_map[pid] = len(active) > 0 and all(t.status == "done" for t in active)
         total_hours = sum(t.estimated_hours or 0 for t in active)
         done_hours = sum(t.estimated_hours or 0 for t in active if t.status == "done")
@@ -74,7 +77,14 @@ def get_project_progress(project_id: str, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     all_ids = _collect_descendant_project_ids(db, project_id)
-    tasks = db.query(Task).filter(Task.project_id.in_(all_ids), Task.status != "cancelled", Task.deleted_at.is_(None)).all()
+    if project.exclude_from_stats:
+        return {"total_estimated_hours": 0, "completed_estimated_hours": 0, "progress": 0}
+    tasks = db.query(Task).filter(
+        Task.project_id.in_(all_ids),
+        Task.status != "cancelled",
+        Task.deleted_at.is_(None),
+        Task.exclude_from_stats == False,  # noqa: E712
+    ).all()
     total_hours = sum(t.estimated_hours or 0 for t in tasks)
     done_hours = sum(t.estimated_hours or 0 for t in tasks if t.status == "done")
     progress = round(done_hours / total_hours * 100) if total_hours > 0 else 0

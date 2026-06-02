@@ -502,6 +502,24 @@ export default function KanbanBoard() {
                 </div>
               </div>
 
+              {/* Exclude from stats toggle */}
+              <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 rounded-lg">
+                <button
+                  onClick={() => {
+                    const newVal = !editingTask.exclude_from_stats;
+                    handleSaveTask({ exclude_from_stats: newVal });
+                    setEditingTask({ ...editingTask, exclude_from_stats: newVal });
+                  }}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${editingTask.exclude_from_stats ? 'bg-amber-400' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${editingTask.exclude_from_stats ? 'left-[18px]' : 'left-0.5'}`} />
+                </button>
+                <span className="text-xs text-gray-600 font-medium">Exclude from statistics</span>
+                {editingTask.exclude_from_stats && (
+                  <span className="text-xs text-amber-600 font-medium">Excluded</span>
+                )}
+              </div>
+
               {/* Assignee + Estimate + Due Date */}
               <div className="grid grid-cols-3 gap-3">
                 <div>

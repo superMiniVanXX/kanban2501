@@ -6,6 +6,7 @@ export interface Project {
   parent_id: string | null;
   start_date: string | null;
   end_date: string | null;
+  exclude_from_stats: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -38,6 +39,7 @@ export interface Task {
   sub_project_id: string | null;
   acceptance_criteria: string | null;
   implementation_plan: string | null;
+  exclude_from_stats: boolean;
   code_projects: { id: string; name: string }[] | null;
   created_at: string;
   updated_at: string;

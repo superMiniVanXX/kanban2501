@@ -35,7 +35,9 @@ cd frontend && npm run build
 |-------|-------|
 | Backend | FastAPI 0.115 + SQLAlchemy 2.0 + SQLite (`backend/data/kanban.db`) |
 | Frontend | React 18 + TypeScript + Vite 6 + Tailwind CSS 3 |
-| API | REST at `localhost:9527/api/v1`; frontend dev proxies via Vite |
+| API | REST at `localhost:9527/api/v1`; frontend dev at `localhost:5173` proxies `/api` → backend |
+
+**Dev mode**: `scripts/start.sh dev` launches both backend (uvicorn `--reload` on 9527) and frontend (Vite on 5173). PIDs saved to `.kanban.pid`. Production builds frontend into `backend/static/` and serves everything from backend alone.
 
 ### Data Model Hierarchy
 
@@ -89,6 +91,21 @@ backend/app/
 - **UUID primary keys** — all models use `str(36)` IDs generated via `uuid.uuid4()`.
 - **Task execution** (`POST /tasks/{id}/execute`) — takes a `config_id`, expands `{task_*}` placeholders in the command template, and resolves `##workdir##` to the first linked CodeProject's path. Commands run via `subprocess.run` with 30-second timeout.
 
+### Testing
+
+Tests use `FastAPI TestClient` against a temporary SQLite database (created per test via `conftest.py`). The conftest swaps the production `database.engine` and `database.SessionLocal` at **module level** (before importing `app.main`), then overrides the `get_db` dependency. All tables are created/dropped per test (`autouse` fixture).
+
+```bash
+# Run all backend tests
+cd backend && python -m pytest tests/ -v
+
+# Run a single test file
+cd backend && python -m pytest tests/test_tasks.py -v
+
+# Run a specific test function
+cd backend && python -m pytest tests/test_tasks.py::test_create_task -v
+```
+
 ### Frontend Routes
 
 ```
@@ -101,6 +118,18 @@ backend/app/
 
 Key dependencies: `@hello-pangea/dnd` for drag-and-drop, `axios` for API calls, `react-router-dom` v7 for routing.
 
-### Services
+### Services & Integration
 
-The `kanban-api` skill (Claude Code integration) wraps the full REST API. The `debian-project-sync` skill discovers debian-packaged projects from source trees and syncs them as CodeProjects.
+The `kanban-api` skill (Claude Code integration) wraps the full REST API — defined in `ai/skills/kanban-api/`. The `debian-project-sync` skill discovers debian-packaged projects from source trees and syncs them as CodeProjects.
+
+### Frontend Architecture
+
+```
+frontend/src/
+  services/api.ts    — centralized axios client (30+ typed API functions)
+  types/index.ts     — all TypeScript interfaces (Project, Task, Board, Column, etc.)
+  pages/             — route-level components (KanbanBoard, ProjectList, SettingsPage, etc.)
+  components/        — reusable UI (TaskCard, KanbanColumn, ProjectTree, SearchBox, etc.)
+```
+
+Frontend types mirror backend schemas exactly. The API client uses `axios` with `baseURL: '/api/v1'` — in dev mode, Vite proxies this to the backend.

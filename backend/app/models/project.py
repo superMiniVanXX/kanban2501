@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date
-from sqlalchemy import String, Text, Date, DateTime, ForeignKey, Enum as SAEnum
+from sqlalchemy import Boolean, String, Text, Date, DateTime, ForeignKey, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -19,6 +19,8 @@ class Project(Base):
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     parent_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+
+    exclude_from_stats: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 

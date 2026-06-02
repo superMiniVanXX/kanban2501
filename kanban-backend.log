@@ -1,152 +1,222 @@
 INFO:     Will watch for changes in these directories: ['/home/xuxin/kanban/backend']
 INFO:     Uvicorn running on http://0.0.0.0:9527 (Press CTRL+C to quit)
-INFO:     Started reloader process [11239] using WatchFiles
-INFO:     Started server process [11251]
+INFO:     Started reloader process [24269] using WatchFiles
+INFO:     Started server process [24281]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:58148 - "GET /api/v1/projects HTTP/1.1" 200 OK
-WARNING:  Invalid HTTP request received.
-INFO:     127.0.0.1:39482 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39486 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39500 - "GET /api/v1/tasks/search?q=%E4%BB%BB%E5%8A%A1%E6%A0%8F HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39512 - "GET /api/v1/tasks/search?q=remote-desktop HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39524 - "GET /api/v1/tasks/search?q=%E5%9B%BE%E6%A0%87 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48976 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48980 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48994 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48998 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48962 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48990 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48946 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48974 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49006 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49004 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33682 - "GET /api/v1/tasks/search?q=%E6%8F%92%E4%BB%B6%E6%B3%A8%E5%86%8C%E4%B8%8E%E5%9B%BE%E6%A0%87%E7%8A%B6%E6%80%81%E5%88%87%E6%8D%A2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33718 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33722 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33754 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33766 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33692 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33734 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33706 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33742 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34804 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34812 - "GET /api/v1/tasks/search?q=%E5%AE%9E%E7%8E%B0%E4%BB%BB%E5%8A%A1%E6%A0%8F%E6%8F%92%E4%BB%B6 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37710 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37712 - "GET /api/v1/tasks/search?q=%E5%9B%BE%E6%A0%87%E7%8A%B6%E6%80%81 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37730 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37716 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44442 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44480 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44454 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44496 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44456 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44426 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44502 - "GET /api/v1/projects/64149ed3-712d-45cc-80bf-80702c77c06f/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:44464 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53596 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53604 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53648 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53656 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53690 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53692 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53618 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53672 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53634 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53676 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53694 - "GET /api/v1/tasks/search?q=%E8%BF%9E%E6%8E%A5%E6%96%AD%E5%BC%80%E6%97%B6%E6%8F%92%E4%BB%B6%E5%9B%BE%E6%A0%87%E6%B6%88%E5%A4%B1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53704 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47090 - "GET /api/v1/tasks/420f2015-94ab-48ef-be55-8e3846f98c8f HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47094 - "GET /api/v1/tasks/d9799d51-c6e0-4ca6-8f88-4a84caaa0354 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47326 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47342 - "GET /api/v1/tasks/e3acd2da-f2d9-446a-97e7-033dd91f114f HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51510 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50388 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50404 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50406 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50442 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50458 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50474 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50480 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50412 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50456 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50426 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56614 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:46920 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56760 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-2026-05-29 16:04:34,247 INFO     [kanban.tasks] Execute task '10.4.1-R 暂停共享后端完整执行链路' (id=cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1) with config 'Claude with glm' (id=c6335919-59a7-4c9a-a3f7-53c4ebfbf85e)
-2026-05-29 16:04:34,248 ERROR    [kanban.tasks] ##workdir## in command but task '10.4.1-R 暂停共享后端完整执行链路' has no linked code projects
-INFO:     127.0.0.1:56764 - "POST /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1/execute HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:60212 - "PUT /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60218 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60224 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47624 - "PUT /api/v1/code-projects/4717be56-c31c-42f2-bb14-688f29ee8d3d HTTP/1.1" 200 OK
-2026-05-29 16:05:11,699 INFO     [kanban.tasks] Execute task '10.4.1-R 暂停共享后端完整执行链路' (id=cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1) with config 'Claude with glm' (id=c6335919-59a7-4c9a-a3f7-53c4ebfbf85e)
-2026-05-29 16:05:11,700 INFO     [kanban.tasks] ##workdir## resolved to: /home/xuxin/work/deepin-remote-manager (from code project 'deepin-remote-desktop')
-2026-05-29 16:05:11,700 INFO     [kanban.tasks] Final command: deepin-terminal -w /home/xuxin/work/deepin-remote-manager -e /bin/bash -c '/home/xuxin/.npm-global/bin/claude --allow-dangerously-skip-permissions --enable-auto-mode --settings /home/xuxin/.claude/settings.json.glm \"开始实施id为cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1的KANBAN任务\"'
-2026-05-29 16:05:11,841 INFO     [kanban.tasks] Command finished: exit_code=0, success=True
-2026-05-29 16:05:11,841 WARNING  [kanban.tasks] stderr: System is in immutable mode.
-setHighDpiScaleFactorRoundingPolicy must be called before creating the QGuiApplication instance
-org.deepin.terminal: TerminalApplication initialized, start time: 1780041911753
-
-INFO:     127.0.0.1:47626 - "POST /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43316 - "GET /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57338 - "PUT /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53772 - "PUT /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53782 - "PUT /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45834 - "PUT /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50056 - "PUT /api/v1/tasks/cb53dd5a-a4b7-4f7b-98aa-dfeb3d0c6fa1/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45692 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45708 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45736 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45752 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45672 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45716 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45682 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:45722 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54168 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53872 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60584 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43244 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55512 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55526 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55540 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55554 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55490 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55530 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55534 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55506 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36720 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36722 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36726 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36732 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36742 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36750 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59522 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48730 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42400 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42410 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42416 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42428 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57740 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:57744 - "PUT /api/v1/code-projects/4717be56-c31c-42f2-bb14-688f29ee8d3d HTTP/1.1" 200 OK
-2026-05-29 17:28:19,332 INFO     [kanban.tasks] Execute task '10.4.2-R 远端黑屏帧发送与恢复实现' (id=5367b736-bafb-44d2-bfc5-ae7f8766b076) with config 'Claude with glm' (id=c6335919-59a7-4c9a-a3f7-53c4ebfbf85e)
-2026-05-29 17:28:19,332 INFO     [kanban.tasks] ##workdir## resolved to: /home/xuxin/work/deepin-remote-manager (from code project 'deepin-remote-desktop')
-2026-05-29 17:28:19,332 INFO     [kanban.tasks] Final command: deepin-terminal -w /home/xuxin/work/deepin-remote-manager -e /bin/bash -c '/home/xuxin/.npm-global/bin/claude --allow-dangerously-skip-permissions --enable-auto-mode --settings /home/xuxin/.claude/settings.json.glm \"开始实施id为5367b736-bafb-44d2-bfc5-ae7f8766b076的KANBAN任务\"'
-2026-05-29 17:28:19,485 INFO     [kanban.tasks] Command finished: exit_code=0, success=True
-2026-05-29 17:28:19,486 WARNING  [kanban.tasks] stderr: System is in immutable mode.
-setHighDpiScaleFactorRoundingPolicy must be called before creating the QGuiApplication instance
-org.deepin.terminal: TerminalApplication initialized, start time: 1780046899393
-
-INFO:     127.0.0.1:57752 - "POST /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076/execute HTTP/1.1" 200 OK
-INFO:     127.0.0.1:47950 - "GET /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50940 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50944 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/tasks HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58208 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33252 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33258 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52088 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49968 - "PUT /api/v1/tasks/5367b736-bafb-44d2-bfc5-ae7f8766b076 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53716 - "GET /api/v1/projects/daeed585-a7d1-4c7c-a786-4405768d1c9d/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53728 - "GET /api/v1/projects/84fa7b1c-5370-4398-b258-4a3897befffd/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34838 - "GET /api/v1/projects/585ca1c1-2f00-40c9-9f53-3f86c39a5b4b/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45610 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45604 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45664 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45674 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45684 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45690 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45652 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45632 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45622 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45642 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45702 - "GET /api/v1/projects/7c857f51-adfa-4e8b-af52-498c9280b539/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43912 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43928 - "GET /api/v1/projects/585ca1c1-2f00-40c9-9f53-3f86c39a5b4b/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43938 - "GET /api/v1/projects/84fa7b1c-5370-4398-b258-4a3897befffd/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60402 - "GET /api/v1/projects/daeed585-a7d1-4c7c-a786-4405768d1c9d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60418 - "GET /api/v1/projects/d3935d84-1824-44bc-b139-62c700cd708f/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60430 - "GET /api/v1/projects/05e79335-9389-473e-a33e-876545b7bffb/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41854 - "GET /api/v1/projects/05e79335-9389-473e-a33e-876545b7bffb/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59942 - "GET /api/v1/projects/daeed585-a7d1-4c7c-a786-4405768d1c9d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42582 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48372 - "GET /api/v1/projects/5a417101-8d7d-4e2f-b37e-47bc1a73af41/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48380 - "GET /api/v1/projects/30100c83-00aa-4b1f-b726-7ac66569f214/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48388 - "GET /api/v1/projects/05e79335-9389-473e-a33e-876545b7bffb/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59108 - "GET /api/v1/projects/d3935d84-1824-44bc-b139-62c700cd708f/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48610 - "GET /api/v1/projects/daeed585-a7d1-4c7c-a786-4405768d1c9d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56472 - "GET /api/v1/projects/84fa7b1c-5370-4398-b258-4a3897befffd/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33866 - "GET /api/v1/projects/daeed585-a7d1-4c7c-a786-4405768d1c9d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45404 - "GET /api/v1/projects/daeed585-a7d1-4c7c-a786-4405768d1c9d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57044 - "GET /api/v1/projects/daeed585-a7d1-4c7c-a786-4405768d1c9d/activity-logs?limit=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57048 - "GET /api/v1/projects/daeed585-a7d1-4c7c-a786-4405768d1c9d/activity-logs?limit=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56916 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50072 - "GET /api/v1/projects/7c857f51-adfa-4e8b-af52-498c9280b539/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50084 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50086 - "POST /api/v1/projects HTTP/1.1" 201 Created
+INFO:     127.0.0.1:50102 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51216 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36162 - "POST /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:36176 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44618 - "POST /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:44620 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44628 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42424 - "PUT /api/v1/tasks/429e9a7a-d678-4e38-9252-14f868046bf7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42436 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39846 - "PUT /api/v1/tasks/2f316d9d-bdb9-4df0-ac57-a63390d133fa HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39862 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50174 - "PUT /api/v1/tasks/429e9a7a-d678-4e38-9252-14f868046bf7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50178 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50182 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43578 - "PUT /api/v1/tasks/2f316d9d-bdb9-4df0-ac57-a63390d133fa HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43592 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43606 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/models/project.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [24281]
+INFO:     Started server process [28433]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/models/project.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28433]
+WARNING:  WatchFiles detected changes in 'app/models/task.py'. Reloading...
+INFO:     Started server process [28450]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Started server process [28452]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/models/task.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28452]
+INFO:     Started server process [28531]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/database.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28531]
+INFO:     Started server process [28550]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/schemas/project.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28550]
+INFO:     Started server process [28591]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/schemas/project.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28591]
+INFO:     Started server process [28632]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/schemas/task.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28632]
+INFO:     Started server process [28649]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/schemas/task.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28649]
+INFO:     Started server process [28657]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/services/statistics_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28657]
+INFO:     Started server process [28684]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/routers/projects.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28684]
+INFO:     Started server process [28692]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/routers/projects.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28692]
+INFO:     Started server process [28708]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:58382 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58424 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58398 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58438 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58356 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58390 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58412 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58368 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43758 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43782 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43766 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43802 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43822 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43824 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43794 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43810 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43774 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58020 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33114 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33118 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33150 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33154 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33134 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33100 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33102 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33140 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39908 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39914 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39880 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39896 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40964 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40978 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41010 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41026 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40942 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40990 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40952 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41006 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59970 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45122 - "PUT /api/v1/tasks/429e9a7a-d678-4e38-9252-14f868046bf7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45134 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45150 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45164 - "PUT /api/v1/tasks/2f316d9d-bdb9-4df0-ac57-a63390d133fa HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45166 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45178 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42540 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42564 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42578 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42608 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42614 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42544 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42588 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42604 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42556 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42630 - "GET /api/v1/projects/03dd4f1a-ab48-4b2f-bdb0-0efb0196e86d/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42642 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53370 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53394 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53378 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53404 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53344 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53388 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53390 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53354 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60646 - "GET /api/v1/projects/4f5bb3ab-6f46-4d66-b6f7-2e0c0b456a89/board HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/schemas/project.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28708]
+INFO:     Started server process [29308]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

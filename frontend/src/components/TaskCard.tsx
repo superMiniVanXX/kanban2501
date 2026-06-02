@@ -177,6 +177,12 @@ export default function TaskCard({ task, onClick, executionConfigs, isPendingDel
           <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border ${ps.badge}`}>
             {PRIORITY_LABELS[task.priority]}
           </span>
+          {task.exclude_from_stats && (
+            <span className="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-400 font-medium">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+              No stats
+            </span>
+          )}
           {task.due_date && (
             <span className={`flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-md ${
               isOverdue ? 'text-red-600 bg-red-50 font-medium' : 'text-gray-400'

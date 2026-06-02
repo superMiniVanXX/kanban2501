@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProjectTree, createProject, deleteProject } from '../services/api';
+import { getProjectTree, createProject, deleteProject, updateProject } from '../services/api';
 import type { ProjectTree as ProjectTreeType, Project } from '../types';
 import CreateProjectModal from '../components/CreateProjectModal';
 
@@ -53,6 +53,11 @@ export default function ProjectList() {
 
   const handleDelete = async (id: string) => {
     await deleteProject(id);
+    await fetchTree();
+  };
+
+  const handleToggleExclude = async (project: ProjectTreeType) => {
+    await updateProject(project.id, { exclude_from_stats: !project.exclude_from_stats });
     await fetchTree();
   };
 
@@ -139,6 +144,12 @@ export default function ProjectList() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                    {project.exclude_from_stats && (
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200 font-medium">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                        No stats
+                      </span>
+                    )}
                     <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border font-medium ${statusStyle.badge}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
                       {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('_', ' ')}
@@ -150,7 +161,21 @@ export default function ProjectList() {
                 </Link>
 
                 {/* Delete — visible on hover */}
-                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleExclude(project); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                      project.exclude_from_stats
+                        ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200'
+                        : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 border-gray-200 hover:border-amber-200'
+                    }`}
+                    title={project.exclude_from_stats ? 'Include in statistics' : 'Exclude from statistics'}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                    {project.exclude_from_stats ? 'Include' : 'No stats'}
+                  </button>
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(project.id); }}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-red-600 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg transition-colors"

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date
-from sqlalchemy import String, Text, Integer, Float, Date, DateTime, Enum as SAEnum, ForeignKey, JSON
+from sqlalchemy import Boolean, String, Text, Integer, Float, Date, DateTime, Enum as SAEnum, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -39,6 +39,8 @@ class Task(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    exclude_from_stats: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
