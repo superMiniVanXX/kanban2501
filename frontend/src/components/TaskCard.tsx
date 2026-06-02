@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import type { Task, ExecutionConfig, ExecuteResult } from '../types';
-import { executeTask, updateCodeProject } from '../services/api';
+import { executeTask, updateCodeProject, updateTask } from '../services/api';
 import { useFixedDropdown } from '../hooks/useFixedDropdown';
 
 const PRIORITY_STYLE: Record<string, { bar: string; bg: string; badge: string; title: string; progress: string }> = {
@@ -51,6 +51,8 @@ export default function TaskCard({ task, onClick, executionConfigs, isPendingDel
   const { triggerRef, elRef, style: dropdownStyle } = useFixedDropdown(showDropdown, { align: 'right' });
   const menuRef = useRef<HTMLDivElement>(null);
   const showExecute = !task.sub_project_id && executionConfigs.length > 0;
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
 
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
 
@@ -125,7 +127,32 @@ export default function TaskCard({ task, onClick, executionConfigs, isPendingDel
       >
         <div className="flex items-start justify-between gap-2">
           <div className={`text-sm font-semibold ${ps.title} flex-1 min-w-0 leading-snug`}>
-            {TYPE_ICON[task.task_type] ?? ''}{task.title}
+            {editingTitle ? (
+              <input
+                type="text"
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onBlur={async () => {
+                  if (titleDraft.trim() && titleDraft.trim() !== task.title) {
+                    await updateTask(task.id, { title: titleDraft.trim() });
+                  }
+                  setEditingTitle(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { (e.target as HTMLInputElement).blur(); }
+                  if (e.key === 'Escape') { setEditingTitle(false); }
+                }}
+                onClick={(e) => e.stopPropagation()}
+                autoFocus
+                className="w-full text-sm font-semibold bg-white border border-blue-300 rounded px-1 py-0 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              />
+            ) : (
+              <span
+                onDoubleClick={(e) => { e.stopPropagation(); setEditingTitle(true); setTitleDraft(task.title); }}
+              >
+                {TYPE_ICON[task.task_type] ?? ''}{task.title}
+              </span>
+            )}
           </div>
           {showExecute && (
             <div className="relative flex-shrink-0">

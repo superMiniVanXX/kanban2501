@@ -188,6 +188,12 @@ export default function KanbanBoard() {
   const [editingDescription, setEditingDescription] = useState(false);
   const [descriptionDraft, setDescriptionDraft] = useState('');
 
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
+
+  const [editingBoardName, setEditingBoardName] = useState(false);
+  const [boardNameDraft, setBoardNameDraft] = useState('');
+
   const handleAddSubProject = async () => {
     if (!projectId || !newSubProjectName.trim()) return;
     setAddingSubProject(true);
@@ -312,7 +318,35 @@ export default function KanbanBoard() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </Link>
           )}
-          <h1 className="text-xl font-bold text-gray-900 truncate">{board.name}</h1>
+          {editingBoardName ? (
+            <input
+              type="text"
+              value={boardNameDraft}
+              onChange={(e) => setBoardNameDraft(e.target.value)}
+              onBlur={async () => {
+                if (boardNameDraft.trim() && boardNameDraft.trim() !== board.name && projectId) {
+                  await updateProject(projectId, { name: boardNameDraft.trim() });
+                  setBoard({ ...board, name: boardNameDraft.trim() });
+                  await refreshTree();
+                }
+                setEditingBoardName(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { (e.target as HTMLInputElement).blur(); }
+                if (e.key === 'Escape') { setEditingBoardName(false); }
+              }}
+              autoFocus
+              className="text-xl font-bold text-gray-900 bg-white border border-blue-300 rounded px-2 py-0.5 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          ) : (
+            <h1
+              className="text-xl font-bold text-gray-900 truncate cursor-pointer hover:text-blue-600 transition-colors"
+              onDoubleClick={() => { setEditingBoardName(true); setBoardNameDraft(board.name); }}
+              title="Double-click to edit"
+            >
+              {board.name}
+            </h1>
+          )}
           {board.is_completed && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm shadow-emerald-100">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
@@ -432,7 +466,34 @@ export default function KanbanBoard() {
                   editingTask.status === 'in_progress' ? 'bg-amber-500' :
                   editingTask.status === 'todo' ? 'bg-blue-500' : 'bg-slate-500'
                 }`} />
-                <h2 className="text-lg font-bold text-gray-900 truncate">{editingTask.title}</h2>
+                {editingTitle ? (
+                  <input
+                    type="text"
+                    value={titleDraft}
+                    onChange={(e) => setTitleDraft(e.target.value)}
+                    onBlur={() => {
+                      if (titleDraft.trim() && titleDraft.trim() !== editingTask.title) {
+                        handleSaveTask({ title: titleDraft.trim() });
+                        setEditingTask({ ...editingTask, title: titleDraft.trim() });
+                      }
+                      setEditingTitle(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { (e.target as HTMLInputElement).blur(); }
+                      if (e.key === 'Escape') { setEditingTitle(false); }
+                    }}
+                    autoFocus
+                    className="text-lg font-bold text-gray-900 bg-white border border-blue-300 rounded px-2 py-0.5 focus:ring-2 focus:ring-blue-400 focus:outline-none min-w-0 flex-1"
+                  />
+                ) : (
+                  <h2
+                    className="text-lg font-bold text-gray-900 truncate cursor-pointer hover:text-blue-600 transition-colors"
+                    onDoubleClick={() => { setEditingTitle(true); setTitleDraft(editingTask.title); }}
+                    title="Double-click to edit"
+                  >
+                    {editingTask.title}
+                  </h2>
+                )}
               </div>
               <button onClick={() => { setEditingTask(null); silentRefresh(); }} className="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1 flex-shrink-0 ml-4 transition-colors">&times;</button>
             </div>

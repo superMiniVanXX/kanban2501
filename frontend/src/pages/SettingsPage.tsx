@@ -34,7 +34,7 @@ export default function SettingsPage() {
   const [codeProjectLoading, setCodeProjectLoading] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [editingProject, setEditingProject] = useState<CodeProject | null>(null);
-  const [projectForm, setProjectForm] = useState<CodeProjectCreate>({ name: '', description: '', repo_url: '' });
+  const [projectForm, setProjectForm] = useState<CodeProjectCreate>({ name: '', description: '', repo_url: '', path: '' });
   const [projectSaving, setProjectSaving] = useState(false);
 
   const fetchConfigs = async () => {
@@ -85,13 +85,13 @@ export default function SettingsPage() {
 
   // Project CRUD
   const resetProjectForm = () => {
-    setProjectForm({ name: '', description: '', repo_url: '' });
+    setProjectForm({ name: '', description: '', repo_url: '', path: '' });
     setEditingProject(null);
     setShowProjectForm(false);
   };
 
   const handleEditProject = (p: CodeProject) => {
-    setProjectForm({ name: p.name, description: p.description ?? '', repo_url: p.repo_url ?? '' });
+    setProjectForm({ name: p.name, description: p.description ?? '', repo_url: p.repo_url ?? '', path: p.path ?? '' });
     setEditingProject(p);
     setShowProjectForm(true);
   };
@@ -162,7 +162,7 @@ export default function SettingsPage() {
 
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Execution Configurations</h2>
-            {!showForm && (
+            {!showForm && !editing && (
               <button
                 onClick={() => setShowForm(true)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
@@ -172,8 +172,8 @@ export default function SettingsPage() {
             )}
           </div>
 
-          {/* Add / Edit form */}
-          {showForm && (
+          {/* Add form — only for new items */}
+          {showForm && !editing && (
             <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
               <div className="space-y-3">
                 <div>
@@ -216,7 +216,7 @@ export default function SettingsPage() {
                   disabled={saving || !form.name.trim() || !form.command_template.trim()}
                   className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
                 >
-                  {saving ? 'Saving...' : editing ? 'Update' : 'Create'}
+                  {saving ? 'Saving...' : 'Create'}
                 </button>
                 <button
                   onClick={resetForm}
@@ -239,34 +239,86 @@ export default function SettingsPage() {
           ) : (
             <div className="space-y-2">
               {configs.map((config) => (
-                <div
-                  key={config.id}
-                  className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-start justify-between"
-                >
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-medium text-gray-900 text-sm">{config.name}</h3>
-                    <code className="text-xs text-gray-500 mt-1 block truncate bg-gray-50 rounded px-1.5 py-0.5">
-                      {config.command_template}
-                    </code>
-                    {config.description && (
-                      <p className="text-xs text-gray-400 mt-1">{config.description}</p>
-                    )}
+                editing?.id === config.id ? (
+                  <div key={config.id} className="bg-blue-50/50 border border-blue-200 rounded-lg p-4">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Name</label>
+                        <input
+                          type="text"
+                          value={form.name}
+                          onChange={(e) => setForm({ ...form, name: e.target.value })}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Command Template</label>
+                        <textarea
+                          value={form.command_template}
+                          onChange={(e) => setForm({ ...form, command_template: e.target.value })}
+                          rows={3}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">
+                          Use placeholders like {'{task_id}'}, {'{task_title}'}, etc.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Description (optional)</label>
+                        <input
+                          type="text"
+                          value={form.description ?? ''}
+                          onChange={(e) => setForm({ ...form, description: e.target.value })}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={handleSave}
+                        disabled={saving || !form.name.trim() || !form.command_template.trim()}
+                        className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
+                      >
+                        {saving ? 'Saving...' : 'Update'}
+                      </button>
+                      <button
+                        onClick={resetForm}
+                        className="px-4 py-1.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-1.5 ml-3 flex-shrink-0">
-                    <button
-                      onClick={() => handleEdit(config)}
-                      className="px-2.5 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 rounded-md transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(config.id)}
-                      className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 rounded-md transition-colors"
-                    >
-                      Delete
-                    </button>
+                ) : (
+                  <div
+                    key={config.id}
+                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-start justify-between"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-gray-900 text-sm">{config.name}</h3>
+                      <code className="text-xs text-gray-500 mt-1 block truncate bg-gray-50 rounded px-1.5 py-0.5">
+                        {config.command_template}
+                      </code>
+                      {config.description && (
+                        <p className="text-xs text-gray-400 mt-1">{config.description}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5 ml-3 flex-shrink-0">
+                      <button
+                        onClick={() => handleEdit(config)}
+                        className="px-2.5 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 rounded-md transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(config.id)}
+                        className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 rounded-md transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )
               ))}
             </div>
           )}
@@ -278,7 +330,7 @@ export default function SettingsPage() {
         <>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Code Projects</h2>
-            {!showProjectForm && (
+            {!showProjectForm && !editingProject && (
               <button
                 onClick={() => setShowProjectForm(true)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
@@ -288,7 +340,8 @@ export default function SettingsPage() {
             )}
           </div>
 
-          {showProjectForm && (
+          {/* Add form — only for new items */}
+          {showProjectForm && !editingProject && (
             <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
               <div className="space-y-3">
                 <div>
@@ -321,6 +374,16 @@ export default function SettingsPage() {
                     className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Local Path (optional)</label>
+                  <input
+                    type="text"
+                    value={projectForm.path ?? ''}
+                    onChange={(e) => setProjectForm({ ...projectForm, path: e.target.value })}
+                    placeholder="e.g. /home/user/project"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  />
+                </div>
               </div>
               <div className="flex gap-2 mt-3">
                 <button
@@ -328,7 +391,7 @@ export default function SettingsPage() {
                   disabled={projectSaving || !projectForm.name.trim()}
                   className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
                 >
-                  {projectSaving ? 'Saving...' : editingProject ? 'Update' : 'Create'}
+                  {projectSaving ? 'Saving...' : 'Create'}
                 </button>
                 <button
                   onClick={resetProjectForm}
@@ -350,34 +413,98 @@ export default function SettingsPage() {
           ) : (
             <div className="space-y-2">
               {codeProjects.map((project) => (
-                <div
-                  key={project.id}
-                  className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-start justify-between"
-                >
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-medium text-gray-900 text-sm">{project.name}</h3>
-                    {project.description && (
-                      <p className="text-xs text-gray-400 mt-1">{project.description}</p>
-                    )}
-                    {project.repo_url && (
-                      <a href={project.repo_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-600 mt-1 block truncate">{project.repo_url}</a>
-                    )}
+                editingProject?.id === project.id ? (
+                  <div key={project.id} className="bg-blue-50/50 border border-blue-200 rounded-lg p-4">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Name</label>
+                        <input
+                          type="text"
+                          value={projectForm.name}
+                          onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Description (optional)</label>
+                        <input
+                          type="text"
+                          value={projectForm.description ?? ''}
+                          onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Repo URL (optional)</label>
+                        <input
+                          type="text"
+                          value={projectForm.repo_url ?? ''}
+                          onChange={(e) => setProjectForm({ ...projectForm, repo_url: e.target.value })}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Local Path (optional)</label>
+                        <input
+                          type="text"
+                          value={projectForm.path ?? ''}
+                          onChange={(e) => setProjectForm({ ...projectForm, path: e.target.value })}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={handleSaveProject}
+                        disabled={projectSaving || !projectForm.name.trim()}
+                        className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
+                      >
+                        {projectSaving ? 'Saving...' : 'Update'}
+                      </button>
+                      <button
+                        onClick={resetProjectForm}
+                        className="px-4 py-1.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-1.5 ml-3 flex-shrink-0">
-                    <button
-                      onClick={() => handleEditProject(project)}
-                      className="px-2.5 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 rounded-md transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProject(project.id)}
-                      className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 rounded-md transition-colors"
-                    >
-                      Delete
-                    </button>
+                ) : (
+                  <div
+                    key={project.id}
+                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-start justify-between"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-gray-900 text-sm">{project.name}</h3>
+                      {project.description && (
+                        <p className="text-xs text-gray-400 mt-1">{project.description}</p>
+                      )}
+                      {project.path && (
+                        <p className="text-xs text-teal-600 mt-1 font-mono truncate flex items-center gap-1">
+                          <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                          {project.path}
+                        </p>
+                      )}
+                      {project.repo_url && (
+                        <a href={project.repo_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-600 mt-1 block truncate">{project.repo_url}</a>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5 ml-3 flex-shrink-0">
+                      <button
+                        onClick={() => handleEditProject(project)}
+                        className="px-2.5 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 rounded-md transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProject(project.id)}
+                        className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 rounded-md transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )
               ))}
             </div>
           )}

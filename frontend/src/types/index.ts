@@ -82,6 +82,7 @@ export interface CodeProject {
 export type CodeProjectCreate = Pick<CodeProject, 'name'> & {
   description?: string;
   repo_url?: string;
+  path?: string;
 };
 
 export interface ExecutionConfig {
