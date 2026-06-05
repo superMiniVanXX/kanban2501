@@ -1,5 +1,6 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import SearchBox from './SearchBox';
+import RecentTasks from './RecentTasks';
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
@@ -19,6 +20,9 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
         </Link>
         <div className="flex-1 flex justify-center">
           <SearchBox />
+        </div>
+        <div className="flex items-center flex-shrink-0">
+          <RecentTasks />
         </div>
         <nav className="flex items-center gap-1 flex-shrink-0">
           {navLinks.map((link) => {

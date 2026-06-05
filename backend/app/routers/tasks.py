@@ -28,6 +28,33 @@ class CreateSubProjectRequest(BaseModel):
 VALID_STATUSES = {"backlog", "todo", "in_progress", "review", "done", "cancelled"}
 
 
+@router.get("/tasks/recent", response_model=list[TaskSearchResponse])
+def recent_tasks(limit: int = 15, db: Session = Depends(get_db)):
+    rows = (
+        db.query(Task, Project.name.label("project_name"))
+        .join(Project, Task.project_id == Project.id)
+        .filter(Task.deleted_at.is_(None))
+        .order_by(Task.updated_at.desc())
+        .limit(min(limit, 50))
+        .all()
+    )
+    return [
+        TaskSearchResponse(
+            id=t.id,
+            project_id=t.project_id,
+            title=t.title,
+            status=t.status,
+            priority=t.priority,
+            task_type=t.task_type,
+            assignee=t.assignee,
+            due_date=t.due_date,
+            sub_project_id=t.sub_project_id,
+            project_name=pn,
+        )
+        for t, pn in rows
+    ]
+
+
 @router.get("/tasks/search", response_model=list[TaskSearchResponse])
 def search_tasks(q: str, db: Session = Depends(get_db)):
     keyword = f"%{q}%"

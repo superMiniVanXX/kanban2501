@@ -84,6 +84,10 @@ export const updateCodeProject = (id: string, data: Partial<CodeProjectCreate>) 
 export const deleteCodeProject = (id: string) =>
   api.delete(`/code-projects/${id}`);
 
+// Recent tasks
+export const getRecentTasks = (limit = 15) =>
+  api.get<SearchResult[]>('/tasks/recent', { params: { limit } }).then((r) => r.data);
+
 // Search
 export const searchTasks = (q: string) =>
   api.get<SearchResult[]>('/tasks/search', { params: { q } }).then((r) => r.data);

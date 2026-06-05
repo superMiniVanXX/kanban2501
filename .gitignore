@@ -7,3 +7,5 @@ frontend/dist/
 .kanban.pid
 kanban.log
 .claude/
+
+.codegraph/
