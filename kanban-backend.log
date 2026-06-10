@@ -1,59 +1,11 @@
 INFO:     Will watch for changes in these directories: ['/home/xuxin/kanban/backend']
 INFO:     Uvicorn running on http://0.0.0.0:9527 (Press CTRL+C to quit)
-INFO:     Started reloader process [13939] using WatchFiles
-INFO:     Started server process [13951]
+INFO:     Started reloader process [164087] using WatchFiles
+INFO:     Started server process [164099]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:39902 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39904 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39240 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49612 - "PUT /api/v1/code-projects/4e730727-632b-4993-9cc1-7681c31ca1fc HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49620 - "POST /api/v1/projects HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:39958 - "POST /api/v1/projects HTTP/1.1" 201 Created
-INFO:     127.0.0.1:47848 - "POST /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/tasks HTTP/1.1" 201 Created
-INFO:     127.0.0.1:47856 - "POST /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/tasks HTTP/1.1" 201 Created
-INFO:     127.0.0.1:47860 - "POST /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/tasks HTTP/1.1" 201 Created
-INFO:     127.0.0.1:47862 - "POST /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/tasks HTTP/1.1" 201 Created
-INFO:     127.0.0.1:47864 - "POST /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/tasks HTTP/1.1" 201 Created
-INFO:     127.0.0.1:47872 - "GET /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37722 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37706 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37766 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37774 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37802 - "GET /api/v1/execution-configs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37814 - "GET /api/v1/code-projects HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37734 - "GET /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37786 - "GET /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37750 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37794 - "GET /api/v1/projects/tree HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34084 - "PUT /api/v1/tasks/c40082c6-b953-4459-ad02-442c1c09bd6f/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42490 - "PUT /api/v1/tasks/c40082c6-b953-4459-ad02-442c1c09bd6f/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42112 - "PUT /api/v1/tasks/c40082c6-b953-4459-ad02-442c1c09bd6f/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42114 - "PUT /api/v1/tasks/c40082c6-b953-4459-ad02-442c1c09bd6f/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42120 - "PUT /api/v1/tasks/e62ef24a-98ab-4d9b-a8f5-4ee080d040ba/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59422 - "PUT /api/v1/tasks/e62ef24a-98ab-4d9b-a8f5-4ee080d040ba/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59438 - "PUT /api/v1/tasks/e62ef24a-98ab-4d9b-a8f5-4ee080d040ba/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59442 - "PUT /api/v1/tasks/e62ef24a-98ab-4d9b-a8f5-4ee080d040ba/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59458 - "PUT /api/v1/tasks/f026f13e-bebf-4b52-8ca9-1e61faf7f2df/status HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:59474 - "PUT /api/v1/tasks/f026f13e-bebf-4b52-8ca9-1e61faf7f2df/status HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:59484 - "PUT /api/v1/tasks/f026f13e-bebf-4b52-8ca9-1e61faf7f2df/status HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:59488 - "PUT /api/v1/tasks/e815d53e-ea6d-4d0c-9b8b-44213c3146a3/status HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:59498 - "PUT /api/v1/tasks/e815d53e-ea6d-4d0c-9b8b-44213c3146a3/status HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:59500 - "PUT /api/v1/tasks/e815d53e-ea6d-4d0c-9b8b-44213c3146a3/status HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:54604 - "PUT /api/v1/tasks/f026f13e-bebf-4b52-8ca9-1e61faf7f2df/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54616 - "PUT /api/v1/tasks/f026f13e-bebf-4b52-8ca9-1e61faf7f2df/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54626 - "PUT /api/v1/tasks/f026f13e-bebf-4b52-8ca9-1e61faf7f2df/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54638 - "PUT /api/v1/tasks/f026f13e-bebf-4b52-8ca9-1e61faf7f2df/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54652 - "PUT /api/v1/tasks/e815d53e-ea6d-4d0c-9b8b-44213c3146a3/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54660 - "PUT /api/v1/tasks/e815d53e-ea6d-4d0c-9b8b-44213c3146a3/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54662 - "PUT /api/v1/tasks/e815d53e-ea6d-4d0c-9b8b-44213c3146a3/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54678 - "PUT /api/v1/tasks/e815d53e-ea6d-4d0c-9b8b-44213c3146a3/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35904 - "PUT /api/v1/tasks/b5f90f98-8a16-4098-9a17-58e4f445771d/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35916 - "PUT /api/v1/tasks/b5f90f98-8a16-4098-9a17-58e4f445771d/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:35930 - "PUT /api/v1/tasks/b5f90f98-8a16-4098-9a17-58e4f445771d/status HTTP/1.1" 422 Unprocessable Entity
-INFO:     127.0.0.1:48462 - "PUT /api/v1/tasks/b5f90f98-8a16-4098-9a17-58e4f445771d/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48472 - "PUT /api/v1/tasks/b5f90f98-8a16-4098-9a17-58e4f445771d/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48480 - "GET /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:48494 - "PUT /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53600 - "GET /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/board HTTP/1.1" 200 OK
-INFO:     127.0.0.1:43416 - "GET /api/v1/projects/aa76869f-ea13-48e9-9b97-5af871a30411/board HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [164099]
+INFO:     Stopping reloader process [164087]
