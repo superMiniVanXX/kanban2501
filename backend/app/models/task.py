@@ -52,7 +52,7 @@ class Task(Base):
     project = relationship("Project", back_populates="tasks", foreign_keys=[project_id])
     sub_project = relationship("Project", foreign_keys=[sub_project_id])
     code_projects = relationship("CodeProject", secondary="task_code_projects", backref="related_tasks")
-    worktree = relationship("Worktree", back_populates="task", foreign_keys=[worktree_id])
+    worktree = relationship("Worktree", foreign_keys=[worktree_id])
 
 
 class TaskCodeProject(Base):

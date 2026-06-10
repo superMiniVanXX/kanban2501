@@ -23,5 +23,5 @@ class Worktree(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    task = relationship("Task", back_populates="worktree")
+    task = relationship("Task", foreign_keys=[task_id])
     config = relationship("WorktreeConfig")
