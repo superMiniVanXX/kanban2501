@@ -13,10 +13,13 @@ from app.models.task import Task, TaskCodeProject
 from app.models.project import Project
 from app.models.execution_config import ExecutionConfig
 from app.models.task_status_history import TaskStatusHistory
+from app.models.worktree import Worktree
+from app.models.worktree_config import WorktreeConfig
 from app.schemas.task import TaskCreate, TaskUpdate, TaskStatusUpdate, TaskMove, TaskResponse, TaskSearchResponse
 from app.schemas.execution_config import ExecuteRequest, ExecuteResponse
 from app.services.activity_service import log_activity
 from app.services.workflow_service import validate_transition
+from app.services.worktree_service import expand_template, validate_repo, create_worktree, remove_worktree
 
 router = APIRouter(tags=["tasks"])
 
@@ -102,12 +105,29 @@ def list_tasks(project_id: str, status: str | None = None, db: Session = Depends
 def create_task(project_id: str, data: TaskCreate, db: Session = Depends(get_db)):
     task_data = data.model_dump()
     cp_ids = task_data.pop("code_project_ids", None)
+    wt_config_id = task_data.pop("worktree_config_id", None)
     task = Task(project_id=project_id, **task_data)
     db.add(task)
     db.flush()
     if cp_ids:
         for cp_id in cp_ids:
             db.add(TaskCodeProject(task_id=task.id, code_project_id=cp_id))
+    if wt_config_id:
+        wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == wt_config_id).first()
+        if wt_config:
+            project = db.query(Project).filter(Project.id == project_id).first()
+            branch = expand_template(wt_config.branch_template, task, project)
+            path = expand_template(wt_config.dir_template, task, project, branch=branch)
+            wt = Worktree(
+                task_id=task.id,
+                config_id=wt_config.id,
+                branch=branch,
+                path=path,
+                status="pending",
+            )
+            db.add(wt)
+            db.flush()
+            task.worktree_id = wt.id
     db.commit()
     db.refresh(task)
     log_activity(db, project_id, "task_created", "task", task.id, task.title,
@@ -130,12 +150,30 @@ def update_task(task_id: str, data: TaskUpdate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Task not found")
     update_data = data.model_dump(exclude_unset=True)
     code_project_ids = update_data.pop("code_project_ids", None)
+    worktree_config_id = update_data.pop("worktree_config_id", None)
     for k, v in update_data.items():
         setattr(task, k, v)
     if code_project_ids is not None:
         db.query(TaskCodeProject).filter(TaskCodeProject.task_id == task_id).delete()
         for cp_id in code_project_ids:
             db.add(TaskCodeProject(task_id=task_id, code_project_id=cp_id))
+    if worktree_config_id is not None and not task.worktree:
+        if worktree_config_id:
+            wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == worktree_config_id).first()
+            if wt_config:
+                project = db.query(Project).filter(Project.id == task.project_id).first()
+                branch = expand_template(wt_config.branch_template, task, project)
+                path = expand_template(wt_config.dir_template, task, project, branch=branch)
+                wt = Worktree(
+                    task_id=task.id,
+                    config_id=wt_config.id,
+                    branch=branch,
+                    path=path,
+                    status="pending",
+                )
+                db.add(wt)
+                db.flush()
+                task.worktree_id = wt.id
     db.commit()
     db.refresh(task)
     return task
@@ -173,6 +211,31 @@ def change_task_status(task_id: str, data: TaskStatusUpdate, db: Session = Depen
     else:
         task.completed_at = None
     db.commit()
+    db.refresh(task)
+    # Worktree hooks
+    if data.status == "in_progress" and task.worktree and task.worktree.status == "pending":
+        wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == task.worktree.config_id).first()
+        if wt_config:
+            repo_check = validate_repo(wt_config.base_repo_path)
+            if repo_check["valid"]:
+                result = create_worktree(wt_config.base_repo_path, task.worktree.branch, task.worktree.path)
+                if result["success"]:
+                    task.worktree.status = "active"
+                else:
+                    task.worktree.status = "error"
+                    task.worktree.error_message = result["error"]
+                db.commit()
+    if data.status in ("done", "cancelled") and task.worktree and task.worktree.status == "active":
+        wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == task.worktree.config_id).first()
+        if wt_config and wt_config.auto_cleanup:
+            result = remove_worktree(task.worktree.path)
+            if result["success"]:
+                task.worktree.status = "removed"
+                task.worktree_id = None
+            else:
+                task.worktree.status = "error"
+                task.worktree.error_message = result["error"]
+            db.commit()
     db.refresh(task)
     db.add(TaskStatusHistory(
         task_id=task.id,
@@ -263,26 +326,32 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
     for token, value in replacements.items():
         cmd = cmd.replace(token, value)
 
-    # Replace ##workdir## with the first linked code project's path
+    # Replace ##workdir## — prefer worktree path over code project path
     if "##workdir##" in cmd:
-        if not task.code_projects:
-            logger.error("##workdir## in command but task '%s' has no linked code projects", task.title)
+        workdir = None
+        source = ""
+        if task.worktree and task.worktree.status == "active":
+            workdir = task.worktree.path
+            source = f"worktree '{task.worktree.branch}'"
+        elif task.code_projects:
+            workdir = task.code_projects[0].path
+            source = f"code project '{task.code_projects[0].name}'"
+            if not workdir:
+                cp_name = task.code_projects[0].name
+                logger.error("##workdir## in command but code project '%s' has no path configured", cp_name)
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Command uses ##workdir## but linked code project '{cp_name}' has no path configured. "
+                           f"Please set a path for code project '{cp_name}'.",
+                )
+        else:
+            logger.error("##workdir## in command but task '%s' has no worktree or code projects", task.title)
             raise HTTPException(
                 status_code=422,
-                detail="Command uses ##workdir## but task has no linked code projects. "
-                       "Please link a code project to this task first.",
+                detail="Command uses ##workdir## but task has no worktree or linked code projects.",
             )
-        workdir = task.code_projects[0].path
-        if not workdir:
-            cp_name = task.code_projects[0].name
-            logger.error("##workdir## in command but code project '%s' has no path configured", cp_name)
-            raise HTTPException(
-                status_code=422,
-                detail=f"Command uses ##workdir## but linked code project '{cp_name}' has no path configured. "
-                       f"Please set a path for code project '{cp_name}'.",
-            )
-        logger.info("##workdir## resolved to: %s (from code project '%s')",
-                    workdir, task.code_projects[0].name)
+        logger.info("##workdir## resolved to: %s (from %s)",
+                    workdir, source)
         cmd = cmd.replace("##workdir##", workdir)
 
     logger.info("Final command: %s", cmd)
