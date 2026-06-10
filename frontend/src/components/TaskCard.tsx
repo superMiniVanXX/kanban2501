@@ -242,6 +242,29 @@ export default function TaskCard({ task, onClick, executionConfigs, isPendingDel
           </div>
         )}
 
+        {task.worktree && task.worktree.status !== 'removed' && (
+          <div className="flex items-center flex-wrap gap-1 mt-1.5">
+            {task.worktree.status === 'pending' && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-medium">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Worktree 待创建
+              </span>
+            )}
+            {task.worktree.status === 'active' && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-md bg-green-50 text-green-700 border border-green-200 font-medium">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                {task.worktree.branch}
+              </span>
+            )}
+            {task.worktree.status === 'error' && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-md bg-red-50 text-red-700 border border-red-200 font-medium" title={task.worktree.error_message ?? ''}>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                Worktree 错误
+              </span>
+            )}
+          </div>
+        )}
+
         {task.sub_project_id && (
           <Link
             to={`/projects/${task.sub_project_id}/board`}
