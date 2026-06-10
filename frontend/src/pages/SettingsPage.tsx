@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { ExecutionConfig, ExecutionConfigCreate, CodeProject, CodeCodeProjectCreate } from '../types';
+import type { ExecutionConfig, ExecutionConfigCreate, CodeProject, CodeProjectCreate, WorktreeConfig, WorktreeConfigCreate } from '../types';
 import {
   getExecutionConfigs,
   createExecutionConfig,
@@ -9,6 +9,10 @@ import {
   createCodeProject,
   updateCodeProject,
   deleteCodeProject,
+  getWorktreeConfigs,
+  createWorktreeConfig,
+  updateWorktreeConfig,
+  deleteWorktreeConfig,
 } from '../services/api';
 
 const PLACEHOLDER_VARS = [
@@ -19,7 +23,7 @@ const PLACEHOLDER_VARS = [
 ];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'execution' | 'projects'>('execution');
+  const [activeTab, setActiveTab] = useState<'execution' | 'projects' | 'worktree'>('execution');
 
   // Execution configs state
   const [configs, setConfigs] = useState<ExecutionConfig[]>([]);
@@ -114,6 +118,59 @@ export default function SettingsPage() {
     await fetchCodeProjects();
   };
 
+  // Worktree configs state
+  const [wtConfigs, setWtConfigs] = useState<WorktreeConfig[]>([]);
+  const [wtLoading, setWtLoading] = useState(false);
+  const [showWtForm, setShowWtForm] = useState(false);
+  const [editingWt, setEditingWt] = useState<WorktreeConfig | null>(null);
+  const [wtForm, setWtForm] = useState<WorktreeConfigCreate>({ name: '', branch_template: '', dir_template: '', base_repo_path: '', description: '', auto_cleanup: false });
+  const [wtSaving, setWtSaving] = useState(false);
+
+  const fetchWtConfigs = async () => {
+    setWtLoading(true);
+    setWtConfigs(await getWorktreeConfigs());
+    setWtLoading(false);
+  };
+
+  useEffect(() => { if (activeTab === 'worktree') fetchWtConfigs(); }, [activeTab]);
+
+  const resetWtForm = () => {
+    setWtForm({ name: '', branch_template: '', dir_template: '', base_repo_path: '', description: '', auto_cleanup: false });
+    setEditingWt(null);
+    setShowWtForm(false);
+  };
+
+  const handleEditWt = (c: WorktreeConfig) => {
+    setWtForm({
+      name: c.name,
+      branch_template: c.branch_template,
+      dir_template: c.dir_template,
+      base_repo_path: c.base_repo_path,
+      description: c.description ?? '',
+      auto_cleanup: c.auto_cleanup,
+    });
+    setEditingWt(c);
+    setShowWtForm(true);
+  };
+
+  const handleSaveWt = async () => {
+    if (!wtForm.name.trim() || !wtForm.branch_template.trim() || !wtForm.dir_template.trim() || !wtForm.base_repo_path.trim()) return;
+    setWtSaving(true);
+    if (editingWt) {
+      await updateWorktreeConfig(editingWt.id, wtForm);
+    } else {
+      await createWorktreeConfig(wtForm);
+    }
+    setWtSaving(false);
+    resetWtForm();
+    await fetchWtConfigs();
+  };
+
+  const handleDeleteWt = async (id: string) => {
+    await deleteWorktreeConfig(id);
+    await fetchWtConfigs();
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Settings</h1>
@@ -136,6 +193,14 @@ export default function SettingsPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >Code Projects</button>
+        <button
+          onClick={() => setActiveTab('worktree')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'worktree'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >Worktree 配置</button>
       </div>
 
       {/* Execution Configs tab */}
@@ -505,6 +570,106 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 )
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Worktree Configs tab */}
+      {activeTab === 'worktree' && (
+        <>
+          <details className="mb-6 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
+            <summary className="text-sm font-medium text-gray-600 cursor-pointer">
+              可用模板变量
+            </summary>
+            <div className="mt-2 grid grid-cols-2 gap-1">
+              {['{task_id}', '{task_id_short}', '{task_title}', '{task_title_slug}', '{task_type}', '{task_priority}', '{task_assignee}', '{project_id}', '{project_name}', '{branch_name}（仅目录模板）'].map((v) => (
+                <code key={v} className="text-xs bg-gray-200 px-1.5 py-0.5 rounded text-gray-700">{v}</code>
+              ))}
+            </div>
+          </details>
+
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Worktree 配置</h2>
+            {!showWtForm && !editingWt && (
+              <button
+                onClick={() => setShowWtForm(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+              >
+                + Add Worktree Config
+              </button>
+            )}
+          </div>
+
+          {/* Add/edit form */}
+          {(showWtForm || editingWt) && (
+            <div className={`border rounded-lg p-4 mb-4 ${editingWt ? 'bg-blue-50/50 border-blue-200' : 'bg-white border-gray-200'}`}>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">名称</label>
+                  <input type="text" value={wtForm.name} onChange={(e) => setWtForm({ ...wtForm, name: e.target.value })} placeholder="e.g. Feature Branch" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">分支命名模板</label>
+                  <input type="text" value={wtForm.branch_template} onChange={(e) => setWtForm({ ...wtForm, branch_template: e.target.value })} placeholder="e.g. feature/{task_id_short}-{task_title_slug}" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">目录命名模板</label>
+                  <input type="text" value={wtForm.dir_template} onChange={(e) => setWtForm({ ...wtForm, dir_template: e.target.value })} placeholder="e.g. /home/user/worktrees/{project_name}/{branch_name}" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">主仓库路径</label>
+                  <input type="text" value={wtForm.base_repo_path} onChange={(e) => setWtForm({ ...wtForm, base_repo_path: e.target.value })} placeholder="e.g. /home/user/my-project" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">说明（可选）</label>
+                  <input type="text" value={wtForm.description ?? ''} onChange={(e) => setWtForm({ ...wtForm, description: e.target.value })} placeholder="Brief description" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none" />
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={wtForm.auto_cleanup} onChange={(e) => setWtForm({ ...wtForm, auto_cleanup: e.target.checked })} className="rounded border-gray-300 text-blue-600 focus:ring-blue-400" />
+                  <span className="text-sm text-gray-700">任务完成/取消时自动清理 Worktree</span>
+                </label>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button onClick={handleSaveWt} disabled={wtSaving || !wtForm.name.trim() || !wtForm.branch_template.trim() || !wtForm.dir_template.trim() || !wtForm.base_repo_path.trim()} className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors">
+                  {wtSaving ? 'Saving...' : editingWt ? 'Update' : 'Create'}
+                </button>
+                <button onClick={resetWtForm} className="px-4 py-1.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {wtLoading ? (
+            <div className="text-gray-400">Loading...</div>
+          ) : wtConfigs.length === 0 ? (
+            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <p className="text-sm">No worktree configurations yet</p>
+              <p className="text-xs mt-1">Click "+ Add Worktree Config" to create one</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {wtConfigs.map((c) => (
+                <div key={c.id} className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium text-gray-900 text-sm">{c.name}</h3>
+                    <code className="text-xs text-gray-500 mt-1 block truncate bg-gray-50 rounded px-1.5 py-0.5">{c.branch_template}</code>
+                    <code className="text-xs text-teal-600 mt-1 block truncate bg-gray-50 rounded px-1.5 py-0.5">{c.dir_template}</code>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-xs text-gray-400 font-mono truncate">{c.base_repo_path}</span>
+                      {c.auto_cleanup && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-green-50 text-green-700 border border-green-200 font-medium">Auto Cleanup</span>
+                      )}
+                    </div>
+                    {c.description && <p className="text-xs text-gray-400 mt-1">{c.description}</p>}
+                  </div>
+                  <div className="flex gap-1.5 ml-3 flex-shrink-0">
+                    <button onClick={() => handleEditWt(c)} className="px-2.5 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 rounded-md transition-colors">Edit</button>
+                    <button onClick={() => handleDeleteWt(c.id)} className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 rounded-md transition-colors">Delete</button>
+                  </div>
+                </div>
               ))}
             </div>
           )}
