@@ -148,3 +148,19 @@ def ensure_schema():
                 ")"
             ))
             conn.commit()
+        wtc_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(worktree_configs)"))]
+        if not wtc_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS worktree_configs ("
+                "id VARCHAR(36) PRIMARY KEY, "
+                "name VARCHAR(200) NOT NULL, "
+                "description TEXT, "
+                "branch_template VARCHAR(500) NOT NULL, "
+                "dir_template VARCHAR(500) NOT NULL, "
+                "auto_cleanup BOOLEAN DEFAULT 0, "
+                "base_repo_path VARCHAR(1000) NOT NULL, "
+                "created_at DATETIME, "
+                "updated_at DATETIME"
+                ")"
+            ))
+            conn.commit()
