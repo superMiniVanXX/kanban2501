@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate, Statistics, ProjectProgress, TrashData } from '../types';
+import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate, Statistics, ProjectProgress, TrashData, WorktreeConfig, WorktreeConfigCreate, Worktree } from '../types';
 
 const api = axios.create({ baseURL: '/api/v1' });
 
@@ -83,6 +83,32 @@ export const updateCodeProject = (id: string, data: Partial<CodeProjectCreate>) 
 
 export const deleteCodeProject = (id: string) =>
   api.delete(`/code-projects/${id}`);
+
+// Worktree Configs
+export const getWorktreeConfigs = () =>
+  api.get<WorktreeConfig[]>('/worktree-configs').then((r) => r.data);
+
+export const createWorktreeConfig = (data: WorktreeConfigCreate) =>
+  api.post<WorktreeConfig>('/worktree-configs', data).then((r) => r.data);
+
+export const updateWorktreeConfig = (id: string, data: Partial<WorktreeConfigCreate>) =>
+  api.put<WorktreeConfig>(`/worktree-configs/${id}`, data).then((r) => r.data);
+
+export const deleteWorktreeConfig = (id: string) =>
+  api.delete(`/worktree-configs/${id}`);
+
+// Task Worktree
+export const createTaskWorktree = (taskId: string, configId: string) =>
+  api.post<Worktree>(`/tasks/${taskId}/worktree`, { config_id: configId }).then((r) => r.data);
+
+export const getTaskWorktree = (taskId: string) =>
+  api.get<Worktree>(`/tasks/${taskId}/worktree`).then((r) => r.data);
+
+export const rebuildTaskWorktree = (taskId: string, configId: string) =>
+  api.put<Worktree>(`/tasks/${taskId}/worktree`, { config_id: configId }).then((r) => r.data);
+
+export const deleteTaskWorktree = (taskId: string) =>
+  api.delete(`/tasks/${taskId}/worktree`);
 
 // Recent tasks
 export const getRecentTasks = (limit = 15) =>

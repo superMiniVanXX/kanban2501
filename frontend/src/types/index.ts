@@ -41,6 +41,7 @@ export interface Task {
   implementation_plan: string | null;
   exclude_from_stats: boolean;
   code_projects: { id: string; name: string }[] | null;
+  worktree: Worktree | null;
   created_at: string;
   updated_at: string;
 }
@@ -117,6 +118,35 @@ export interface ExecuteResult {
   success: boolean;
 }
 
+export interface WorktreeConfig {
+  id: string;
+  name: string;
+  description: string | null;
+  branch_template: string;
+  dir_template: string;
+  auto_cleanup: boolean;
+  base_repo_path: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type WorktreeConfigCreate = Pick<WorktreeConfig, 'name' | 'branch_template' | 'dir_template' | 'base_repo_path'> & {
+  description?: string;
+  auto_cleanup?: boolean;
+};
+
+export interface Worktree {
+  id: string;
+  task_id: string;
+  config_id: string | null;
+  branch: string;
+  path: string;
+  status: 'pending' | 'active' | 'removed' | 'error';
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export type TaskCreate = Pick<Task, 'title'> & {
   description?: string;
   priority?: Task['priority'];
@@ -126,6 +156,7 @@ export type TaskCreate = Pick<Task, 'title'> & {
   start_date?: string | null;
   due_date?: string | null;
   tags?: string[];
+  worktree_config_id?: string;
 };
 
 export interface SearchResult {
