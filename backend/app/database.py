@@ -164,3 +164,25 @@ def ensure_schema():
                 ")"
             ))
             conn.commit()
+        wt_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(worktrees)"))]
+        if not wt_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS worktrees ("
+                "id VARCHAR(36) PRIMARY KEY, "
+                "task_id VARCHAR(36) NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, "
+                "config_id VARCHAR(36) REFERENCES worktree_configs(id) ON DELETE SET NULL, "
+                "branch VARCHAR(500) NOT NULL, "
+                "path VARCHAR(1000) NOT NULL, "
+                "status VARCHAR(20) DEFAULT 'pending', "
+                "error_message TEXT, "
+                "created_at DATETIME, "
+                "updated_at DATETIME"
+                ")"
+            ))
+            conn.commit()
+        task_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(tasks)"))]
+        if "worktree_id" not in task_cols:
+            conn.execute(text(
+                "ALTER TABLE tasks ADD COLUMN worktree_id VARCHAR(36) REFERENCES worktrees(id) ON DELETE SET NULL"
+            ))
+            conn.commit()

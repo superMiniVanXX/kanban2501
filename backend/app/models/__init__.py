@@ -6,3 +6,4 @@ from app.models.execution_config import ExecutionConfig
 from app.models.activity_log import ActivityLog
 from app.models.task_status_history import TaskStatusHistory
 from app.models.worktree_config import WorktreeConfig
+from app.models.worktree import Worktree

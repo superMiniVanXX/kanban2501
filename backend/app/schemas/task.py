@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from pydantic import BaseModel, Field
 
+from app.schemas.worktree import WorktreeBrief
+
 
 class CodeProjectBrief(BaseModel):
     id: str
@@ -24,6 +26,7 @@ class TaskCreate(BaseModel):
     implementation_plan: str | None = None
     code_project_ids: list[str] | None = None
     exclude_from_stats: bool = False
+    worktree_config_id: str | None = None
 
 
 class TaskUpdate(BaseModel):
@@ -43,6 +46,7 @@ class TaskUpdate(BaseModel):
     implementation_plan: str | None = None
     code_project_ids: list[str] | None = None
     exclude_from_stats: bool | None = None
+    worktree_config_id: str | None = None
 
 
 class TaskStatusUpdate(BaseModel):
@@ -77,6 +81,7 @@ class TaskResponse(BaseModel):
     implementation_plan: str | None
     exclude_from_stats: bool = False
     code_projects: list[CodeProjectBrief] | None = None
+    worktree: WorktreeBrief | None = None
     created_at: datetime
     updated_at: datetime
 
