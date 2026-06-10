@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import type { TaskCreate } from '../types';
+import { useState, useEffect } from 'react';
+import type { TaskCreate, WorktreeConfig } from '../types';
+import { getWorktreeConfigs } from '../services/api';
 
 interface Props {
   open: boolean;
@@ -19,6 +20,13 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
     due_date: null,
   });
   const [loading, setLoading] = useState(false);
+  const [wtConfigs, setWtConfigs] = useState<WorktreeConfig[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      getWorktreeConfigs().then(setWtConfigs).catch(() => {});
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -111,6 +119,21 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
               />
             </div>
           </div>
+          {wtConfigs.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Worktree 配置</label>
+              <select
+                value={form.worktree_config_id || ''}
+                onChange={(e) => setForm((f) => ({ ...f, worktree_config_id: e.target.value || undefined }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">不使用 Worktree</option>
+                {wtConfigs.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">
               Cancel
