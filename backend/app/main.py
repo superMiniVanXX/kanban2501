@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import ensure_schema
-from app.routers import projects, tasks, board, execution_configs, activity, code_projects, statistics, trash
+from app.routers import projects, tasks, board, execution_configs, activity, code_projects, statistics, trash, worktree_configs
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,6 +41,7 @@ app.include_router(activity.router, prefix="/api/v1")
 app.include_router(code_projects.router, prefix="/api/v1")
 app.include_router(statistics.router, prefix="/api/v1")
 app.include_router(trash.router, prefix="/api/v1")
+app.include_router(worktree_configs.router, prefix="/api/v1")
 
 static_dir = Path(__file__).resolve().parent.parent / "static"
 if static_dir.is_dir():
