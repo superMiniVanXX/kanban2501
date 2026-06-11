@@ -52,7 +52,7 @@ def load_board_with_tasks(db: Session, project_id: str) -> dict:
         by_parent.setdefault(p.parent_id, []).append(p)
     project_ids = {project_id} | _collect_descendant_ids(by_parent, project_id)
 
-    tasks = db.query(Task).options(selectinload(Task.code_projects)).filter(Task.project_id.in_(project_ids), Task.deleted_at.is_(None)).all()
+    tasks = db.query(Task).options(selectinload(Task.code_projects), selectinload(Task.worktree)).filter(Task.project_id.in_(project_ids), Task.deleted_at.is_(None)).all()
     tasks_by_status: dict[str, list] = {}
     for t in tasks:
         tasks_by_status.setdefault(t.status, []).append(t)

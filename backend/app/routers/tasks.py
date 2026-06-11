@@ -3,7 +3,7 @@ import subprocess
 from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import or_
 
 logger = logging.getLogger("kanban.tasks")
@@ -95,7 +95,7 @@ def search_tasks(q: str, db: Session = Depends(get_db)):
 
 @router.get("/projects/{project_id}/tasks", response_model=list[TaskResponse])
 def list_tasks(project_id: str, status: str | None = None, db: Session = Depends(get_db)):
-    q = db.query(Task).filter(Task.project_id == project_id, Task.deleted_at.is_(None))
+    q = db.query(Task).options(selectinload(Task.code_projects), selectinload(Task.worktree)).filter(Task.project_id == project_id, Task.deleted_at.is_(None))
     if status:
         q = q.filter(Task.status == status)
     return q.order_by(Task.sort_order, Task.created_at).all()
@@ -137,7 +137,7 @@ def create_task(project_id: str, data: TaskCreate, db: Session = Depends(get_db)
 
 @router.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(task_id: str, db: Session = Depends(get_db)):
-    task = db.query(Task).filter(Task.id == task_id).first()
+    task = db.query(Task).options(selectinload(Task.code_projects), selectinload(Task.worktree)).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
