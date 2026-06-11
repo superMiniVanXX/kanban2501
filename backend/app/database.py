@@ -186,3 +186,31 @@ def ensure_schema():
                 "ALTER TABLE tasks ADD COLUMN worktree_id VARCHAR(36) REFERENCES worktrees(id) ON DELETE SET NULL"
             ))
             conn.commit()
+        # verify_criteria column for quality verification phase
+        task_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(tasks)"))]
+        if "verify_criteria" not in task_cols:
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN verify_criteria TEXT"))
+            conn.commit()
+        # Add verify + complete columns to existing boards
+        board_rows = conn.execute(text("SELECT id FROM boards")).fetchall()
+        for (board_id,) in board_rows:
+            existing = [row[0] for row in conn.execute(
+                text("SELECT column_status FROM columns WHERE board_id = :bid"),
+                {"bid": board_id},
+            )]
+            max_order = conn.execute(
+                text("SELECT COALESCE(MAX(sort_order), -1) FROM columns WHERE board_id = :bid"),
+                {"bid": board_id},
+            ).scalar()
+            if "verify" not in existing:
+                conn.execute(text(
+                    "INSERT INTO columns (id, board_id, name, column_status, wip_limit, sort_order) "
+                    "VALUES (lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-4' || substr(hex(randomblob(2)),2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(hex(randomblob(2)),2) || '-' || hex(randomblob(6))), :bid, 'Verify', 'verify', NULL, :sort)"
+                ), {"bid": board_id, "sort": max_order + 1})
+                conn.commit()
+            if "complete" not in existing:
+                conn.execute(text(
+                    "INSERT INTO columns (id, board_id, name, column_status, wip_limit, sort_order) "
+                    "VALUES (lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-4' || substr(hex(randomblob(2)),2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(hex(randomblob(2)),2) || '-' || hex(randomblob(6))), :bid, 'Complete', 'complete', NULL, :sort)"
+                ), {"bid": board_id, "sort": max_order + 2})
+                conn.commit()

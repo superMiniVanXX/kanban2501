@@ -148,6 +148,21 @@ export default function KanbanBoard() {
         setStatusError('Cannot move from In Progress to Done: must go through Review first.');
         return;
       }
+      if (sourceId === 'in_progress' && (newStatus === 'verify' || newStatus === 'complete')) {
+        setBoard(prevBoard);
+        setStatusError('Cannot skip stages: must go through Review and Done first.');
+        return;
+      }
+      if (sourceId === 'review' && (newStatus === 'verify' || newStatus === 'complete')) {
+        setBoard(prevBoard);
+        setStatusError('Cannot skip stages: must go through Done first.');
+        return;
+      }
+      if (sourceId === 'done' && newStatus === 'complete') {
+        setBoard(prevBoard);
+        setStatusError('Cannot skip Verify: must go through Verify first.');
+        return;
+      }
       await changeTaskStatus(taskId, newStatus);
       await moveTask(taskId, newIndex);
       await silentRefresh();
@@ -735,8 +750,16 @@ export default function KanbanBoard() {
               {/* Acceptance Criteria */}
               {editingTask.acceptance_criteria && (
                 <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Acceptance Criteria</h4>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Acceptance Criteria (开发验收)</h4>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap bg-emerald-50 rounded-lg p-3 border border-emerald-100">{editingTask.acceptance_criteria}</p>
+                </div>
+              )}
+
+              {/* Verify Criteria */}
+              {editingTask.verify_criteria && (
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Verify Criteria (质量验证)</h4>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap bg-cyan-50 rounded-lg p-3 border border-cyan-100">{editingTask.verify_criteria}</p>
                 </div>
               )}
 

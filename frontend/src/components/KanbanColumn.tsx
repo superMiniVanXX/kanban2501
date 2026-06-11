@@ -8,6 +8,8 @@ const COLUMN_STYLE: Record<string, { header: string; bg: string; hover: string }
   in_progress: { header: 'bg-amber-600',   bg: 'bg-amber-50/50',  hover: 'bg-amber-100/60' },
   review:      { header: 'bg-violet-600',  bg: 'bg-violet-50/50', hover: 'bg-violet-100/60' },
   done:        { header: 'bg-emerald-600', bg: 'bg-emerald-50/50', hover: 'bg-emerald-100/60' },
+  verify:      { header: 'bg-cyan-600',    bg: 'bg-cyan-50/50',   hover: 'bg-cyan-100/60' },
+  complete:    { header: 'bg-teal-600',    bg: 'bg-teal-50/50',   hover: 'bg-teal-100/60' },
   cancelled:   { header: 'bg-gray-600',    bg: 'bg-gray-50/50',   hover: 'bg-gray-100/60' },
 };
 

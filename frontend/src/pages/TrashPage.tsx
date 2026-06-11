@@ -5,7 +5,8 @@ import type { TrashData, Project, Task } from '../types';
 
 const STATUS_LABEL: Record<string, string> = {
   backlog: 'Backlog', todo: 'To Do', in_progress: 'In Progress',
-  review: 'Review', done: 'Done', cancelled: 'Cancelled',
+  review: 'Review', done: 'Done', verify: 'Verify', complete: 'Complete',
+  cancelled: 'Cancelled',
 };
 
 function EmptyTrash() {

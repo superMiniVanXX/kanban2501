@@ -25,7 +25,7 @@ class Column(Base):
     board_id: Mapped[str] = mapped_column(String(36), ForeignKey("boards.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     column_status: Mapped[str] = mapped_column(
-        SAEnum("backlog", "todo", "in_progress", "review", "done", "cancelled", name="column_status"),
+        SAEnum("backlog", "todo", "in_progress", "review", "done", "verify", "complete", "cancelled", name="column_status"),
         nullable=False,
     )
     wip_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -9,6 +9,8 @@ const STATUS_LABEL: Record<string, string> = {
   in_progress: 'In Progress',
   review: 'Review',
   done: 'Done',
+  verify: 'Verify',
+  complete: 'Complete',
   cancelled: 'Cancelled',
 };
 
@@ -18,6 +20,8 @@ const STATUS_STYLE: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-600',
   review: 'bg-violet-50 text-violet-600',
   done: 'bg-emerald-50 text-emerald-600',
+  verify: 'bg-cyan-50 text-cyan-600',
+  complete: 'bg-teal-50 text-teal-600',
   cancelled: 'bg-red-50 text-red-500',
 };
 

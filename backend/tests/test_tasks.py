@@ -28,8 +28,12 @@ def test_list_tasks(client, project_id):
 
 
 def test_filter_tasks_by_status(client, project_id):
-    r1 = client.post(f"/api/v1/projects/{project_id}/tasks", json={"title": "T1"})
+    r1 = client.post(f"/api/v1/projects/{project_id}/tasks", json={
+        "title": "T1",
+        "implementation_plan": "Step 1: do stuff",
+    })
     tid = r1.json()["id"]
+    client.put(f"/api/v1/tasks/{tid}/status", json={"status": "todo"})
     client.put(f"/api/v1/tasks/{tid}/status", json={"status": "in_progress"})
     resp = client.get(f"/api/v1/projects/{project_id}/tasks", params={"status": "in_progress"})
     assert len(resp.json()) == 1
@@ -45,8 +49,12 @@ def test_update_task(client, project_id):
 
 
 def test_change_task_status(client, project_id):
-    create = client.post(f"/api/v1/projects/{project_id}/tasks", json={"title": "T1"})
+    create = client.post(f"/api/v1/projects/{project_id}/tasks", json={
+        "title": "T1",
+        "implementation_plan": "Step 1: do stuff",
+    })
     tid = create.json()["id"]
+    client.put(f"/api/v1/tasks/{tid}/status", json={"status": "todo"})
     resp = client.put(f"/api/v1/tasks/{tid}/status", json={"status": "in_progress"})
     assert resp.status_code == 200
     assert resp.json()["status"] == "in_progress"
@@ -72,15 +80,19 @@ def test_board_auto_creates_with_default_columns(client, project_id):
     assert resp.status_code == 200
     data = resp.json()
     assert data["project_id"] == project_id
-    assert len(data["columns"]) == 5
+    assert len(data["columns"]) == 7
     assert data["columns"][0]["column_status"] == "backlog"
     assert data["columns"][0]["tasks"] == []
 
 
 def test_board_includes_tasks_in_columns(client, project_id):
     client.post(f"/api/v1/projects/{project_id}/tasks", json={"title": "T1"})
-    r2 = client.post(f"/api/v1/projects/{project_id}/tasks", json={"title": "T2"})
+    r2 = client.post(f"/api/v1/projects/{project_id}/tasks", json={
+        "title": "T2",
+        "implementation_plan": "Step 1: do stuff",
+    })
     tid = r2.json()["id"]
+    client.put(f"/api/v1/tasks/{tid}/status", json={"status": "todo"})
     client.put(f"/api/v1/tasks/{tid}/status", json={"status": "in_progress"})
 
     resp = client.get(f"/api/v1/projects/{project_id}/board")

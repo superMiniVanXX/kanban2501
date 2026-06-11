@@ -28,7 +28,7 @@ class CreateSubProjectRequest(BaseModel):
     name: str = Field(max_length=200)
     description: str | None = None
 
-VALID_STATUSES = {"backlog", "todo", "in_progress", "review", "done", "cancelled"}
+VALID_STATUSES = {"backlog", "todo", "in_progress", "review", "done", "verify", "complete", "cancelled"}
 
 
 @router.get("/tasks/recent", response_model=list[TaskSearchResponse])
@@ -208,6 +208,8 @@ def change_task_status(task_id: str, data: TaskStatusUpdate, db: Session = Depen
     if data.status == "done":
         task.completed_at = datetime.utcnow()
         task.progress = 100
+    elif data.status in ("verify", "complete"):
+        pass  # keep completed_at and progress from done
     else:
         task.completed_at = None
     db.commit()
@@ -225,7 +227,7 @@ def change_task_status(task_id: str, data: TaskStatusUpdate, db: Session = Depen
                     task.worktree.status = "error"
                     task.worktree.error_message = result["error"]
                 db.commit()
-    if data.status in ("done", "cancelled") and task.worktree and task.worktree.status == "active":
+    if data.status in ("verify", "cancelled") and task.worktree and task.worktree.status == "active":
         wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == task.worktree.config_id).first()
         if wt_config and wt_config.auto_cleanup:
             result = remove_worktree(task.worktree.path)

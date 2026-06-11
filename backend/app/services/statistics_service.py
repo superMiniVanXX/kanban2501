@@ -23,7 +23,7 @@ def get_statistics(db: Session, project_id: str | None = None) -> dict:
         TaskStatusHistory.project_id.notin_(excluded_project_ids),
     )
     task_q = db.query(func.count(Task.id)).filter(
-        Task.status.notin_(["done", "cancelled"]),
+        Task.status.notin_(["done", "verify", "complete", "cancelled"]),
         Task.exclude_from_stats == False,  # noqa: E712
     )
     if project_id:
@@ -48,7 +48,7 @@ def _daily_stats(base, now, total_tasks):
         .filter(TaskStatusHistory.changed_at >= cutoff)
         .with_entities(
             func.strftime("%Y-%m-%d", TaskStatusHistory.changed_at).label("period"),
-            func.sum(case((TaskStatusHistory.new_status == "done", 1), else_=0)).label("completed"),
+            func.sum(case((TaskStatusHistory.new_status.in_(["done", "complete"]), 1), else_=0)).label("completed"),
             func.sum(TaskStatusHistory.new_progress - TaskStatusHistory.old_progress).label("progress_delta"),
         )
         .group_by(func.strftime("%Y-%m-%d", TaskStatusHistory.changed_at))
@@ -72,7 +72,7 @@ def _weekly_stats(base, now, total_tasks):
         .filter(TaskStatusHistory.changed_at >= cutoff)
         .with_entities(
             func.strftime("%Y-%W", TaskStatusHistory.changed_at).label("period"),
-            func.sum(case((TaskStatusHistory.new_status == "done", 1), else_=0)).label("completed"),
+            func.sum(case((TaskStatusHistory.new_status.in_(["done", "complete"]), 1), else_=0)).label("completed"),
             func.sum(TaskStatusHistory.new_progress - TaskStatusHistory.old_progress).label("progress_delta"),
         )
         .group_by(func.strftime("%Y-%W", TaskStatusHistory.changed_at))
@@ -96,7 +96,7 @@ def _monthly_stats(base, now, total_tasks):
         .filter(TaskStatusHistory.changed_at >= cutoff)
         .with_entities(
             func.strftime("%Y-%m", TaskStatusHistory.changed_at).label("period"),
-            func.sum(case((TaskStatusHistory.new_status == "done", 1), else_=0)).label("completed"),
+            func.sum(case((TaskStatusHistory.new_status.in_(["done", "complete"]), 1), else_=0)).label("completed"),
             func.sum(TaskStatusHistory.new_progress - TaskStatusHistory.old_progress).label("progress_delta"),
         )
         .group_by(func.strftime("%Y-%m", TaskStatusHistory.changed_at))

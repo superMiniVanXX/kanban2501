@@ -24,7 +24,7 @@ export interface Task {
   sprint_id: string | null;
   title: string;
   description: string | null;
-  status: 'backlog' | 'todo' | 'in_progress' | 'review' | 'done' | 'cancelled';
+  status: 'backlog' | 'todo' | 'in_progress' | 'review' | 'done' | 'verify' | 'complete' | 'cancelled';
   priority: 'critical' | 'high' | 'medium' | 'low';
   task_type: 'task' | 'milestone' | 'epic';
   assignee: string | null;
@@ -38,6 +38,7 @@ export interface Task {
   tags: string[] | null;
   sub_project_id: string | null;
   acceptance_criteria: string | null;
+  verify_criteria: string | null;
   implementation_plan: string | null;
   exclude_from_stats: boolean;
   code_projects: { id: string; name: string }[] | null;

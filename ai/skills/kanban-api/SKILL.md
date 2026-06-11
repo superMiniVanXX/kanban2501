@@ -5,10 +5,11 @@ description: >
   create, query, update, or delete projects/tasks, manage kanban boards, link
   code projects, execute task commands, or any workflow involving the kanban
   REST API at localhost:9527. Covers project hierarchy, task status lifecycle
-  (backlog→todo→in_progress→review→done), sub-project decomposition, activity
-  logs, code project tracking, and task statistics. Triggers on: "看板", "kanban", "project",
-  "task", "board", "创建项目/任务", "更新状态", "code project", "执行配置",
-  "stats", "statistics", "统计", "进度".
+  (backlog→todo→in_progress→review→done→verify→complete), sub-project decomposition,
+  activity logs, code project tracking, and task statistics. Triggers on: "看板",
+  "kanban", "project", "task", "board", "创建项目/任务", "更新状态", "code project",
+  "执行配置", "stats", "statistics", "统计", "进度", "verify", "验收", "验证".
+tools: Bash, Read
 ---
 
 # Kanban PMP — Project & Task Management via REST API
@@ -28,7 +29,7 @@ operation maps to an HTTP call — there is no direct DB access from this skill.
 | Field | Valid Values |
 |-------|-------------|
 | project.status | `planning`, `active`, `on_hold`, `completed`, `archived` |
-| task.status | `backlog`, `todo`, `in_progress`, `review`, `done`, `cancelled` |
+| task.status | `backlog`, `todo`, `in_progress`, `review`, `done`, `verify`, `complete`, `cancelled` |
 | task.priority | `critical`, `high`, `medium`, `low` |
 | task.task_type | `task`, `milestone`, `epic` |
 
@@ -46,6 +47,7 @@ User request
   ├─ "search/find"    → GET /tasks/search?q=
   ├─ "activity/log"   → GET /projects/{id}/activity-logs
   ├─ "stats/statistics/进度/统计" → GET /statistics
+  ├─ "verify/验收/验证" → PUT /tasks/{id} with verify_criteria, then PUT /tasks/{id}/status
   └─ "setting/config" → CRUD on /execution-configs or /code-projects
 ```
 
@@ -98,10 +100,11 @@ curl -s -X POST http://localhost:9527/api/v1/projects/{pid}/tasks \
 curl -s -X PUT http://localhost:9527/api/v1/tasks/{id} \
   -H "Content-Type: application/json" \
   -d '{"progress":50}' | jq .
-# Optional: title, description, acceptance_criteria, implementation_plan,
-#   priority, task_type, assignee, estimated_hours, actual_hours,
-#   progress (0-100), start_date, due_date, tags, sub_project_id,
-#   code_project_ids (full replacement; omit key to leave unchanged)
+# Optional: title, description, acceptance_criteria, verify_criteria,
+#   implementation_plan, priority, task_type, assignee, estimated_hours,
+#   actual_hours, progress (0-100), start_date, due_date, tags,
+#   sub_project_id, code_project_ids (full replacement; omit key to leave
+#   unchanged)
 
 # Delete → 204
 curl -s -X DELETE http://localhost:9527/api/v1/tasks/{id}
@@ -118,19 +121,25 @@ curl -s -X PUT http://localhost:9527/api/v1/tasks/{id}/move \
 ### Status Transitions (CRITICAL — check before every status change)
 
 ```
-Forward (adjacent only):  backlog → todo → in_progress → review → done
-Backward (any direction): todo → backlog, in_progress → todo,
-                          review → in_progress, done → review
+Forward (adjacent only):
+  backlog → todo → in_progress → review → done → verify → complete
+
+Backward (any direction):
+  todo → backlog, in_progress → todo, review → in_progress,
+  done → review, verify → done, complete → verify
+
 Any → cancelled           allowed
 cancelled →               only backlog
 
 422 errors:
   - backlog → todo: implementation_plan must be non-empty
   - in_progress → done: forbidden (must go through review)
+  - done → complete: forbidden (must go through verify)
   - any other invalid transition
 
-Auto: done → progress=100, completed_at=now
-      leaving done → completed_at cleared, progress unchanged
+Auto on done:      progress=100, completed_at=now
+Verify/Complete:   completed_at and progress preserved from done
+Leaving done→review: completed_at cleared
 ```
 
 ### Sub-Project
@@ -181,7 +190,8 @@ curl -s -X POST http://localhost:9527/api/v1/tasks/{id}/execute \
 # → {stdout, stderr, exit_code, success}
 # Placeholders: {task_id}, {task_title}, {task_status}, {task_priority},
 #   {task_type}, {task_assignee}, {task_description},
-#   {task_acceptance_criteria}, {task_implementation_plan},
+#   {task_acceptance_criteria}, {task_verify_criteria},
+#   {task_implementation_plan},
 #   {task_due_date}, {task_start_date}, {task_estimated_hours},
 #   {task_actual_hours}, {task_progress}, {task_tags}, {project_id}
 # ##workdir## — replaced with the first linked code project's path;
@@ -211,7 +221,7 @@ curl -s "http://localhost:9527/api/v1/statistics?project_id={uuid}" | jq .
 ```
 
 Returns daily (30d), weekly (12w), monthly (12m) aggregations. Each entry has:
-- `completed_count` — tasks that reached `done` status during this period
+- `completed_count` — tasks that reached `done` or `complete` status during this period
 - `progress_delta` — net progress change (%), normalized by active task count. Represents how much closer the overall project moved toward completion.
 
 Data source: `TaskStatusHistory` table — a row is inserted every time a task changes status via `PUT /tasks/{id}/status`, recording `old_status`, `new_status`, `old_progress`, `new_progress`, and `changed_at`.
@@ -244,8 +254,9 @@ Data source: `TaskStatusHistory` table — a row is inserted every time a task c
   "wbs_element_id":"uuid|null","sprint_id":"uuid|null",
   "title":"string","description":"string|null",
   "acceptance_criteria":"string|null",
+  "verify_criteria":"string|null",
   "implementation_plan":"string|null",
-  "status":"backlog|todo|in_progress|review|done|cancelled",
+  "status":"backlog|todo|in_progress|review|done|verify|complete|cancelled",
   "priority":"critical|high|medium|low",
   "task_type":"task|milestone|epic",
   "assignee":"string|null",
@@ -273,8 +284,8 @@ Data source: `TaskStatusHistory` table — a row is inserted every time a task c
 }
 ```
 
-- `completed_count` — tasks moved to `done` during the period
-- `progress_delta` — net progress change normalized by active (non-done, non-cancelled) task count. Represents overall project completion percentage change (0–100 scale).
+- `completed_count` — tasks moved to `done` or `complete` during the period
+- `progress_delta` — net progress change normalized by active (non-done/verify/complete/cancelled) task count. Represents overall project completion percentage change (0–100 scale).
 
 ## Task Status Workflow Guide
 
@@ -289,7 +300,7 @@ perform activities outside the current phase's scope.
 1. Explore the codebase, evaluate alternatives, identify affected modules
 2. Identify which **code projects** (repositories) are involved — link them via `code_project_ids`
 3. Write detailed `implementation_plan`: technical approach, files/modules, key design decisions, step-by-step outline. Reference specific code projects and their paths.
-4. Define `acceptance_criteria` in Given/When/Then or checklist format
+4. Define `acceptance_criteria` in Given/When/Then or checklist format — these are the **development acceptance criteria** (开发验收条件)
 5. Ask user about ambiguities, edge cases, trade-offs before finalizing
 6. Iterate on the plan based on user feedback
 
@@ -362,9 +373,52 @@ perform activities outside the current phase's scope.
 
 **Outcome**: Pass → `done`. Issues → back to `in_progress`, document each issue in `description`.
 
-### done — Completed
+### done — Development Complete (开发完成)
 
-Auto: `progress=100`, `completed_at=now`. Revert to `review` if issues found. Never directly to `in_progress`.
+Auto: `progress=100`, `completed_at=now`.
+
+This status means development work is finished and code has passed review. The task is
+ready for the quality verification phase.
+
+- Revert to `review` if issues found. Never directly to `in_progress`.
+- Moving forward to `verify` requires populating `verify_criteria` first.
+
+### verify — Quality Verification (质量验证)
+
+**Goal**: Verify the implementation against detailed quality criteria derived from
+external acceptance files. This phase enriches the task with comprehensive verification
+standards that go beyond the development-phase `acceptance_criteria`.
+
+**DO:**
+1. Read external verification/acceptance files to extract quality criteria
+2. Populate `verify_criteria` field with detailed verification conditions via
+   `PUT /tasks/{id}` with `{"verify_criteria": "..."}`
+3. Verify criteria should cover: functional correctness, edge cases, performance,
+   security, compatibility — anything the external acceptance file specifies
+4. Cross-reference the implementation (code flow, tests, configuration) against
+   `verify_criteria`
+5. Run any verification scripts or test suites specified in acceptance files
+6. Document verification results
+
+**DON'T:**
+- Do NOT modify implementation code — if issues found, move back to `done` → `review` → `in_progress`
+- Do NOT skip the verification criteria population step
+- Do NOT move to `complete` with unmet verification criteria
+
+**Exit**: All `verify_criteria` checked and satisfied. Move to `complete`.
+
+**Backward**: `verify → done` if verification reveals implementation issues.
+
+### complete — All Processes Finished (全部完成)
+
+This is the **true terminal state**. All development, review, and quality verification
+have passed. The task is fully closed.
+
+- Board completion: all non-cancelled tasks must be in `complete` for the board to show
+  as "completed"
+- Statistics: `complete` transitions count toward `completed_count` in statistics
+- Worktree cleanup: worktrees are auto-cleaned when moving to `verify` (if auto_cleanup
+  is enabled in the worktree config)
 
 ### cancelled — Cancelled
 
@@ -393,7 +447,9 @@ When receiving a user requirement, **analyze BEFORE creating tasks**.
 
 **implementation_plan**: Technical approach, key steps, design decisions, files/modules, tech choices. Must be filled before `backlog → todo` (API 422 otherwise). Specific enough to execute step-by-step.
 
-**acceptance_criteria**: Given/When/Then format or checklist (`- ` prefix). Each specific and verifiable. Cover happy path and error scenarios.
+**acceptance_criteria**: Development acceptance criteria (开发验收条件). Given/When/Then format or checklist (`- ` prefix). Each specific and verifiable. Cover happy path and error scenarios. Filled during `backlog` phase.
+
+**verify_criteria**: Quality verification criteria (质量验证条件). Populated during the `verify` phase from external acceptance files. More detailed than `acceptance_criteria` — covers functional correctness, edge cases, performance, security, compatibility. Filled by updating task via `PUT /tasks/{id}` with `{"verify_criteria": "..."}` before or while in `verify` status.
 
 ## Common Workflows
 
@@ -410,7 +466,7 @@ When receiving a user requirement, **analyze BEFORE creating tasks**.
 ### Move task across columns
 1. `GET /projects/{id}/board` → see distribution
 2. `PUT /tasks/{id}/status` → change column
-3. Only sequential forward: `backlog → todo → in_progress → review → done`
+3. Only sequential forward: `backlog → todo → in_progress → review → done → verify → complete`
 4. Optional: `PUT /tasks/{id}/move` → adjust order
 
 ### Link task to code projects
@@ -422,6 +478,15 @@ When receiving a user requirement, **analyze BEFORE creating tasks**.
 1. `POST /tasks/{id}/create-sub-project` → create and link
 2. `GET /tasks/{id}` → verify `sub_project_id` is set
 3. `GET /projects/{sub_project_id}/board` → enter sub-project board
+
+### Verify a task (quality verification)
+1. Task is in `done` status (development complete)
+2. Read external acceptance/verification files
+3. `PUT /tasks/{id}` with `{"verify_criteria": "detailed criteria from files"}`
+4. `PUT /tasks/{id}/status` with `{"status": "verify"}` — moves to Verify column
+5. Execute verification against `verify_criteria`
+6. If passed: `PUT /tasks/{id}/status` with `{"status": "complete"}`
+7. If failed: `PUT /tasks/{id}/status` with `{"status": "done"}` → back to development cycle
 
 ### Clean up project
 1. `PUT /projects/{id}/status` with `{"status":"completed"}` → mark complete
@@ -439,5 +504,7 @@ When receiving a user requirement, **analyze BEFORE creating tasks**.
 - Task `status` and `progress` managed via separate endpoints
 - `backlog → todo` requires non-empty `implementation_plan`
 - Every status change via `PUT /tasks/{id}/status` records a row in `TaskStatusHistory` (old/new status + old/new progress + timestamp), powering the `/statistics` endpoint
+- `acceptance_criteria` = development acceptance (开发验收条件), `verify_criteria` = quality verification (质量验证条件)
+- Board shows as "completed" when all non-cancelled tasks reach `complete` status
 - Interactive docs: `http://localhost:9527/docs`
 - Use `jq` to parse JSON responses

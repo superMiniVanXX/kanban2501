@@ -10,6 +10,8 @@ DEFAULT_COLUMNS = [
     {"name": "In Progress", "column_status": "in_progress", "sort_order": 2},
     {"name": "Review", "column_status": "review", "sort_order": 3},
     {"name": "Done", "column_status": "done", "sort_order": 4},
+    {"name": "Verify", "column_status": "verify", "sort_order": 5},
+    {"name": "Complete", "column_status": "complete", "sort_order": 6},
 ]
 
 
@@ -69,7 +71,7 @@ def load_board_with_tasks(db: Session, project_id: str) -> dict:
         })
 
     active_tasks = [t for t in tasks if t.status != "cancelled"]
-    is_completed = len(active_tasks) > 0 and all(t.status == "done" for t in active_tasks)
+    is_completed = len(active_tasks) > 0 and all(t.status == "complete" for t in active_tasks)
 
     return {
         "id": board.id,

@@ -23,6 +23,7 @@ class TaskCreate(BaseModel):
     tags: list[str] | None = None
     sub_project_id: str | None = None
     acceptance_criteria: str | None = None
+    verify_criteria: str | None = None
     implementation_plan: str | None = None
     code_project_ids: list[str] | None = None
     exclude_from_stats: bool = False
@@ -43,6 +44,7 @@ class TaskUpdate(BaseModel):
     tags: list[str] | None = None
     sub_project_id: str | None = None
     acceptance_criteria: str | None = None
+    verify_criteria: str | None = None
     implementation_plan: str | None = None
     code_project_ids: list[str] | None = None
     exclude_from_stats: bool | None = None
@@ -78,6 +80,7 @@ class TaskResponse(BaseModel):
     tags: list | None
     sub_project_id: str | None
     acceptance_criteria: str | None
+    verify_criteria: str | None
     implementation_plan: str | None
     exclude_from_stats: bool = False
     code_projects: list[CodeProjectBrief] | None = None

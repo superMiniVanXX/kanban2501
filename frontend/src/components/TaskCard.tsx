@@ -54,7 +54,7 @@ export default function TaskCard({ task, onClick, executionConfigs, isPendingDel
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
 
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !['done', 'verify', 'complete', 'cancelled'].includes(task.status);
 
   useEffect(() => {
     if (!showDropdown) return;
