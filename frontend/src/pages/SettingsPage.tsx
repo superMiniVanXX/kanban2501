@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { ExecutionConfig, ExecutionConfigCreate, CodeProject, CodeProjectCreate, WorktreeConfig, WorktreeConfigCreate } from '../types';
+import type { ExecutionConfig, ExecutionConfigCreate, CodeProject, CodeProjectCreate, WorktreeConfig, WorktreeConfigCreate, RemoteHost, RemoteHostCreate } from '../types';
 import {
   getExecutionConfigs,
   createExecutionConfig,
@@ -13,6 +13,7 @@ import {
   createWorktreeConfig,
   updateWorktreeConfig,
   deleteWorktreeConfig,
+  remoteHostApi,
 } from '../services/api';
 
 const PLACEHOLDER_VARS = [
@@ -23,7 +24,7 @@ const PLACEHOLDER_VARS = [
 ];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'execution' | 'projects' | 'worktree'>('execution');
+  const [activeTab, setActiveTab] = useState<'execution' | 'projects' | 'worktree' | 'remote-hosts'>('execution');
 
   // Execution configs state
   const [configs, setConfigs] = useState<ExecutionConfig[]>([]);
@@ -171,6 +172,81 @@ export default function SettingsPage() {
     await fetchWtConfigs();
   };
 
+  // Remote hosts state
+  const [remoteHosts, setRemoteHosts] = useState<RemoteHost[]>([]);
+  const [rhLoading, setRhLoading] = useState(false);
+  const [showRhForm, setShowRhForm] = useState(false);
+  const [editingRh, setEditingRh] = useState<RemoteHost | null>(null);
+  const [rhForm, setRhForm] = useState<Partial<RemoteHostCreate>>({
+    name: '',
+    description: '',
+    ssh_user: '',
+    ssh_host: '',
+    ssh_port: 22,
+    base_path_template: '/home/{ssh_user}/deploy/{task_title_slug}',
+  });
+  const [rhSaving, setRhSaving] = useState(false);
+
+  const fetchRemoteHosts = async () => {
+    setRhLoading(true);
+    setRemoteHosts(await remoteHostApi.list());
+    setRhLoading(false);
+  };
+
+  useEffect(() => { if (activeTab === 'remote-hosts') fetchRemoteHosts(); }, [activeTab]);
+
+  const resetRhForm = () => {
+    setRhForm({
+      name: '',
+      description: '',
+      ssh_user: '',
+      ssh_host: '',
+      ssh_port: 22,
+      base_path_template: '/home/{ssh_user}/deploy/{task_title_slug}',
+    });
+    setEditingRh(null);
+    setShowRhForm(false);
+  };
+
+  const handleEditRh = (h: RemoteHost) => {
+    setRhForm({
+      name: h.name,
+      description: h.description ?? '',
+      ssh_user: h.ssh_user,
+      ssh_host: h.ssh_host,
+      ssh_port: h.ssh_port,
+      base_path_template: h.base_path_template,
+    });
+    setEditingRh(h);
+    setShowRhForm(true);
+  };
+
+  const handleSaveRh = async () => {
+    if (
+      !rhForm.name?.trim() ||
+      !rhForm.ssh_user?.trim() ||
+      !rhForm.ssh_host?.trim() ||
+      !rhForm.base_path_template?.trim()
+    ) return;
+    setRhSaving(true);
+    try {
+      if (editingRh) {
+        await remoteHostApi.update(editingRh.id, rhForm);
+      } else {
+        await remoteHostApi.create(rhForm as RemoteHostCreate);
+      }
+      resetRhForm();
+      await fetchRemoteHosts();
+    } finally {
+      setRhSaving(false);
+    }
+  };
+
+  const handleDeleteRh = async (id: string) => {
+    await remoteHostApi.delete(id);
+    await fetchRemoteHosts();
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Settings</h1>
@@ -201,6 +277,14 @@ export default function SettingsPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >Worktree 配置</button>
+        <button
+          onClick={() => setActiveTab('remote-hosts')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'remote-hosts'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >Remote Hosts</button>
       </div>
 
       {/* Execution Configs tab */}
@@ -668,6 +752,159 @@ export default function SettingsPage() {
                   <div className="flex gap-1.5 ml-3 flex-shrink-0">
                     <button onClick={() => handleEditWt(c)} className="px-2.5 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 rounded-md transition-colors">Edit</button>
                     <button onClick={() => handleDeleteWt(c.id)} className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 rounded-md transition-colors">Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Remote Hosts tab */}
+      {activeTab === 'remote-hosts' && (
+        <>
+          <details className="mb-6 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
+            <summary className="text-sm font-medium text-gray-600 cursor-pointer">
+              Available Base Path Template Variables
+            </summary>
+            <div className="mt-2 grid grid-cols-2 gap-1">
+              {['{ssh_user}', '{ssh_host}', '{task_title_slug}', '{task_id}', '{task_id_short}', '{project_name}', '{project_slug}', '{branch_name}'].map((v) => (
+                <code key={v} className="text-xs bg-gray-200 px-1.5 py-0.5 rounded text-gray-700">{v}</code>
+              ))}
+            </div>
+          </details>
+
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Remote Hosts</h2>
+            {!showRhForm && !editingRh && (
+              <button
+                onClick={() => setShowRhForm(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+              >
+                + Add Remote Host
+              </button>
+            )}
+          </div>
+
+          {/* Add/edit form */}
+          {(showRhForm || editingRh) && (
+            <div className={`border rounded-lg p-4 mb-4 ${editingRh ? 'bg-blue-50/50 border-blue-200' : 'bg-white border-gray-200'}`}>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={rhForm.name ?? ''}
+                    onChange={(e) => setRhForm({ ...rhForm, name: e.target.value })}
+                    placeholder="e.g. Production Server"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Description (optional)</label>
+                  <textarea
+                    value={rhForm.description ?? ''}
+                    onChange={(e) => setRhForm({ ...rhForm, description: e.target.value })}
+                    placeholder="Brief description of this remote host"
+                    rows={2}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">SSH User</label>
+                    <input
+                      type="text"
+                      value={rhForm.ssh_user ?? ''}
+                      onChange={(e) => setRhForm({ ...rhForm, ssh_user: e.target.value })}
+                      placeholder="e.g. deploy"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">SSH Host</label>
+                    <input
+                      type="text"
+                      value={rhForm.ssh_host ?? ''}
+                      onChange={(e) => setRhForm({ ...rhForm, ssh_host: e.target.value })}
+                      placeholder="e.g. prod.example.com"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">SSH Port</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={65535}
+                    value={rhForm.ssh_port ?? 22}
+                    onChange={(e) => setRhForm({ ...rhForm, ssh_port: Number(e.target.value) })}
+                    className="w-full md:w-40 border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Base Path Template</label>
+                  <input
+                    type="text"
+                    value={rhForm.base_path_template ?? ''}
+                    onChange={(e) => setRhForm({ ...rhForm, base_path_template: e.target.value })}
+                    placeholder="e.g. /home/{ssh_user}/deploy/{task_title_slug}"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Variables: {'{ssh_user}'}, {'{ssh_host}'}, {'{task_title_slug}'}, {'{task_id}'}, {'{task_id_short}'}, {'{project_name}'}, {'{project_slug}'}, {'{branch_name}'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={handleSaveRh}
+                  disabled={
+                    rhSaving ||
+                    !rhForm.name?.trim() ||
+                    !rhForm.ssh_user?.trim() ||
+                    !rhForm.ssh_host?.trim() ||
+                    !rhForm.base_path_template?.trim()
+                  }
+                  className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
+                >
+                  {rhSaving ? 'Saving...' : editingRh ? 'Update' : 'Create'}
+                </button>
+                <button
+                  onClick={resetRhForm}
+                  className="px-4 py-1.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {rhLoading ? (
+            <div className="text-gray-400">Loading...</div>
+          ) : remoteHosts.length === 0 ? (
+            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <p className="text-sm">No remote hosts configured yet</p>
+              <p className="text-xs mt-1">Click "+ Add Remote Host" to create one</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {remoteHosts.map((h) => (
+                <div key={h.id} className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium text-gray-900 text-sm">{h.name}</h3>
+                    <code className="text-xs text-teal-600 mt-1 block truncate bg-gray-50 rounded px-1.5 py-0.5">
+                      {h.ssh_user}@{h.ssh_host}:{h.ssh_port}
+                    </code>
+                    <code className="text-xs text-gray-500 mt-1 block truncate bg-gray-50 rounded px-1.5 py-0.5">
+                      {h.base_path_template}
+                    </code>
+                    {h.description && <p className="text-xs text-gray-400 mt-1">{h.description}</p>}
+                  </div>
+                  <div className="flex gap-1.5 ml-3 flex-shrink-0">
+                    <button onClick={() => handleEditRh(h)} className="px-2.5 py-1 text-xs text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 rounded-md transition-colors">Edit</button>
+                    <button onClick={() => handleDeleteRh(h.id)} className="px-2.5 py-1 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 rounded-md transition-colors">Delete</button>
                   </div>
                 </div>
               ))}
