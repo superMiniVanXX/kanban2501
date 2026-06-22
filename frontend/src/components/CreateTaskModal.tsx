@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { TaskCreate, WorktreeConfig } from '../types';
-import { getWorktreeConfigs } from '../services/api';
+import type { TaskCreate, WorktreeConfig, RemoteHost } from '../types';
+import { getWorktreeConfigs, remoteHostApi } from '../services/api';
 
 interface Props {
   open: boolean;
@@ -21,10 +21,13 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
   });
   const [loading, setLoading] = useState(false);
   const [wtConfigs, setWtConfigs] = useState<WorktreeConfig[]>([]);
+  const [remoteHosts, setRemoteHosts] = useState<RemoteHost[]>([]);
+  const [remoteHostId, setRemoteHostId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       getWorktreeConfigs().then(setWtConfigs).catch(() => {});
+      remoteHostApi.list().then(setRemoteHosts).catch(console.error);
     }
   }, [open]);
 
@@ -39,8 +42,10 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
       title: form.title.trim(),
       assignee: form.assignee?.trim() || undefined,
       estimated_hours: form.estimated_hours || undefined,
+      remote_host_id: remoteHostId,
     });
     setForm({ title: '', description: '', acceptance_criteria: '', priority: 'medium', assignee: '', estimated_hours: undefined, due_date: null });
+    setRemoteHostId(null);
     setLoading(false);
     onClose();
   };
@@ -130,6 +135,21 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
                 <option value="">不使用 Worktree</option>
                 {wtConfigs.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {remoteHosts.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Remote Host (optional)</label>
+              <select
+                value={remoteHostId || ''}
+                onChange={(e) => setRemoteHostId(e.target.value || null)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">None</option>
+                {remoteHosts.map((h) => (
+                  <option key={h.id} value={h.id}>{h.name} ({h.ssh_user}@{h.ssh_host})</option>
                 ))}
               </select>
             </div>
