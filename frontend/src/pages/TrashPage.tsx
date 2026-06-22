@@ -32,14 +32,18 @@ export default function TrashPage() {
 
   useEffect(() => { fetchTrash(); }, []);
 
+  const refreshTrash = () => {
+    getTrash().then(setData).catch(() => {});
+  };
+
   const handleRestoreProject = async (id: string) => {
     await restoreProject(id);
-    fetchTrash();
+    refreshTrash();
   };
 
   const handleRestoreTask = async (id: string) => {
     await restoreTask(id);
-    fetchTrash();
+    refreshTrash();
   };
 
   const formatDate = (d: string | null) => {

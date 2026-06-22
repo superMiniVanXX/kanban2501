@@ -28,6 +28,7 @@ def build_project_tree(all_projects: list[Project], completion_map: dict[str, bo
             "parent_id": p.parent_id,
             "start_date": p.start_date,
             "end_date": p.end_date,
+            "exclude_from_stats": p.exclude_from_stats,
             "created_at": p.created_at,
             "updated_at": p.updated_at,
             "is_completed": completion_map.get(p.id, False),

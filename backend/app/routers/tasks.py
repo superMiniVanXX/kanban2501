@@ -31,6 +31,48 @@ class CreateSubProjectRequest(BaseModel):
 VALID_STATUSES = {"backlog", "todo", "in_progress", "review", "done", "verify", "complete", "cancelled"}
 
 
+def _activate_pending_worktree(task: Task, db: Session) -> dict:
+    """Run `git worktree add` for a pending worktree and update its status.
+
+    Called from two sites:
+      - change_task_status (status → in_progress): silent on failure, just marks error
+      - execute_task (lazy activation): caller raises HTTPException on failure
+
+    Contract:
+      - If task has no worktree, or worktree.status != "pending": no-op, return success.
+      - On success: worktree.status set to "active", committed, return {"success": True, "error": None}.
+      - On failure: worktree.status set to "error" with error_message, committed,
+        return {"success": False, "error": "<human-readable reason>"}.
+
+    """
+    if not task.worktree or task.worktree.status != "pending":
+        return {"success": True, "error": None}
+
+    wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == task.worktree.config_id).first()
+    if not wt_config:
+        task.worktree.status = "error"
+        task.worktree.error_message = "Worktree config not found"
+        db.commit()
+        return {"success": False, "error": "Worktree config not found"}
+
+    repo_check = validate_repo(wt_config.base_repo_path)
+    if not repo_check["valid"]:
+        task.worktree.status = "error"
+        task.worktree.error_message = repo_check["error"]
+        db.commit()
+        return {"success": False, "error": repo_check["error"]}
+
+    result = create_worktree(wt_config.base_repo_path, task.worktree.branch, task.worktree.path)
+    if result["success"]:
+        task.worktree.status = "active"
+    else:
+        task.worktree.status = "error"
+        task.worktree.error_message = result["error"]
+
+    db.commit()
+    return result
+
+
 @router.get("/tasks/recent", response_model=list[TaskSearchResponse])
 def recent_tasks(limit: int = 15, db: Session = Depends(get_db)):
     rows = (
@@ -215,18 +257,8 @@ def change_task_status(task_id: str, data: TaskStatusUpdate, db: Session = Depen
     db.commit()
     db.refresh(task)
     # Worktree hooks
-    if data.status == "in_progress" and task.worktree and task.worktree.status == "pending":
-        wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == task.worktree.config_id).first()
-        if wt_config:
-            repo_check = validate_repo(wt_config.base_repo_path)
-            if repo_check["valid"]:
-                result = create_worktree(wt_config.base_repo_path, task.worktree.branch, task.worktree.path)
-                if result["success"]:
-                    task.worktree.status = "active"
-                else:
-                    task.worktree.status = "error"
-                    task.worktree.error_message = result["error"]
-                db.commit()
+    if data.status == "in_progress":
+        _activate_pending_worktree(task, db)
     if data.status in ("verify", "cancelled") and task.worktree and task.worktree.status == "active":
         wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == task.worktree.config_id).first()
         if wt_config and wt_config.auto_cleanup:
@@ -328,17 +360,38 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
     for token, value in replacements.items():
         cmd = cmd.replace(token, value)
 
-    # Replace ##workdir## — prefer worktree path over code project path
+    # Lazy worktree activation: if the task has a pending worktree, create it now
+    # so execution runs inside the worktree directory.
+    if task.worktree and task.worktree.status == "pending":
+        activation = _activate_pending_worktree(task, db)
+        if not activation["success"]:
+            logger.warning("Lazy worktree activation failed for task '%s': %s",
+                           task.title, activation["error"])
+            raise HTTPException(
+                status_code=422,
+                detail=f"Worktree activation failed: {activation['error']}",
+            )
+
+    # Resolve working directory — prefer worktree path over code project path.
+    # This is independent of ##workdir## replacement: cwd must be set regardless
+    # of whether the command template contains the placeholder.
+    workdir = None
+    workdir_source = ""
+    if task.worktree and task.worktree.status == "active":
+        workdir = task.worktree.path
+        workdir_source = f"worktree '{task.worktree.branch}'"
+    elif task.code_projects:
+        workdir = task.code_projects[0].path
+        workdir_source = f"code project '{task.code_projects[0].name}'"
+
+    if workdir:
+        logger.info("Working directory resolved to: %s (from %s)", workdir, workdir_source)
+
+    # Replace ##workdir## placeholder with the resolved path, or fail if the
+    # template requires it but no directory is available.
     if "##workdir##" in cmd:
-        workdir = None
-        source = ""
-        if task.worktree and task.worktree.status == "active":
-            workdir = task.worktree.path
-            source = f"worktree '{task.worktree.branch}'"
-        elif task.code_projects:
-            workdir = task.code_projects[0].path
-            source = f"code project '{task.code_projects[0].name}'"
-            if not workdir:
+        if not workdir:
+            if task.code_projects and not task.code_projects[0].path:
                 cp_name = task.code_projects[0].name
                 logger.error("##workdir## in command but code project '%s' has no path configured", cp_name)
                 raise HTTPException(
@@ -346,20 +399,17 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
                     detail=f"Command uses ##workdir## but linked code project '{cp_name}' has no path configured. "
                            f"Please set a path for code project '{cp_name}'.",
                 )
-        else:
             logger.error("##workdir## in command but task '%s' has no worktree or code projects", task.title)
             raise HTTPException(
                 status_code=422,
                 detail="Command uses ##workdir## but task has no worktree or linked code projects.",
             )
-        logger.info("##workdir## resolved to: %s (from %s)",
-                    workdir, source)
         cmd = cmd.replace("##workdir##", workdir)
 
     logger.info("Final command: %s", cmd)
 
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30, cwd=workdir)
         success = result.returncode == 0
         logger.info("Command finished: exit_code=%d, success=%s", result.returncode, success)
         if result.stdout:

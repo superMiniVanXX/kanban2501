@@ -107,6 +107,9 @@ export const getTaskWorktree = (taskId: string) =>
 export const rebuildTaskWorktree = (taskId: string, configId: string) =>
   api.put<Worktree>(`/tasks/${taskId}/worktree`, { config_id: configId }).then((r) => r.data);
 
+export const openTaskWorktree = (taskId: string) =>
+  api.post(`/tasks/${taskId}/worktree/open`);
+
 export const deleteTaskWorktree = (taskId: string) =>
   api.delete(`/tasks/${taskId}/worktree`);
 

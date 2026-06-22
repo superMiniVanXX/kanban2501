@@ -1,4 +1,6 @@
 import logging
+import os
+import platform
 import subprocess
 from pathlib import Path
 import re
@@ -97,5 +99,28 @@ def remove_worktree(path: str) -> dict:
             return {"success": False, "error": error}
     except subprocess.TimeoutExpired:
         return {"success": False, "error": "git worktree remove timed out after 10 seconds"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def open_worktree(path: str) -> dict:
+    p = Path(path).resolve()
+    if not p.exists():
+        return {"success": False, "error": f"Path does not exist: {p}"}
+
+    system = platform.system()
+    try:
+        if system == "Linux":
+            subprocess.run(["xdg-open", str(p)], check=False, timeout=5)
+        elif system == "Darwin":
+            subprocess.run(["open", str(p)], check=False, timeout=5)
+        elif system == "Windows":
+            os.startfile(str(p))  # no shell, safe from command injection
+        else:
+            return {"success": False, "error": f"Unsupported platform: {system}"}
+        logger.info("Opened worktree path: %s", p)
+        return {"success": True, "error": None}
+    except subprocess.TimeoutExpired:
+        return {"success": False, "error": "Open command timed out"}
     except Exception as e:
         return {"success": False, "error": str(e)}

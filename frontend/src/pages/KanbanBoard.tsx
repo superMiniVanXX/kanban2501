@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
-import { getBoard, getProjectTree, changeTaskStatus, moveTask, createTask, updateTask, deleteTask, updateProject, createProject, createSubProject, getExecutionConfigs, getCodeProjects, getWorktreeConfigs, createTaskWorktree, deleteTaskWorktree } from '../services/api';
+import { getBoard, getProjectTree, changeTaskStatus, moveTask, createTask, updateTask, deleteTask, updateProject, createProject, createSubProject, getExecutionConfigs, getCodeProjects, getWorktreeConfigs, createTaskWorktree, deleteTaskWorktree, openTaskWorktree } from '../services/api';
 import type { Board, ProjectTree as ProjectTreeType, Task, TaskCreate, ExecutionConfig, CodeProject, WorktreeConfig } from '../types';
 import KanbanColumn from '../components/KanbanColumn';
 import CreateTaskModal from '../components/CreateTaskModal';
@@ -918,6 +918,17 @@ export default function KanbanBoard() {
                       </span>
                     )}
                     <span className="text-xs text-gray-400 truncate max-w-xs" title={editingTask.worktree.path}>{editingTask.worktree.path}</span>
+                    {editingTask.worktree.status === 'active' && (
+                      <button
+                        onClick={async () => {
+                          try { await openTaskWorktree(editingTask.id); } catch { /* ignore */ }
+                        }}
+                        className="text-xs text-blue-500 hover:text-blue-700 transition-colors"
+                        title={`Open ${editingTask.worktree.path}`}
+                      >
+                        打开
+                      </button>
+                    )}
                     {editingTask.worktree.status !== 'removed' && (
                       <button
                         onClick={async () => {

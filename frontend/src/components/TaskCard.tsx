@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import type { Task, ExecutionConfig, ExecuteResult } from '../types';
-import { executeTask, updateCodeProject, updateTask } from '../services/api';
+import { executeTask, updateCodeProject, updateTask, openTaskWorktree } from '../services/api';
 import { useFixedDropdown } from '../hooks/useFixedDropdown';
 
 const PRIORITY_STYLE: Record<string, { bar: string; bg: string; badge: string; title: string; progress: string }> = {
@@ -251,10 +251,17 @@ export default function TaskCard({ task, onClick, executionConfigs, isPendingDel
               </span>
             )}
             {task.worktree.status === 'active' && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-md bg-green-50 text-green-700 border border-green-200 font-medium">
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try { await openTaskWorktree(task.id); } catch { /* ignore */ }
+                }}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-md bg-green-50 text-green-700 border border-green-200 font-medium hover:bg-green-100 hover:border-green-300 transition-colors cursor-pointer"
+                title={`Open ${task.worktree.path}`}
+              >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 {task.worktree.branch}
-              </span>
+              </button>
             )}
             {task.worktree.status === 'error' && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-md bg-red-50 text-red-700 border border-red-200 font-medium" title={task.worktree.error_message ?? ''}>

@@ -7,7 +7,7 @@ from app.models.task import Task
 from app.models.worktree import Worktree
 from app.models.worktree_config import WorktreeConfig
 from app.schemas.worktree import WorktreeResponse, WorktreeCreateRequest
-from app.services.worktree_service import expand_template, validate_repo, create_worktree, remove_worktree
+from app.services.worktree_service import expand_template, validate_repo, create_worktree, remove_worktree, open_worktree
 
 logger = logging.getLogger(__name__)
 
@@ -108,16 +108,27 @@ def rebuild_task_worktree(task_id: str, data: WorktreeCreateRequest, db: Session
     return wt
 
 
-@router.delete("/tasks/{task_id}/worktree", status_code=204)
-def delete_task_worktree(task_id: str, db: Session = Depends(get_db)):
+@router.post("/tasks/{task_id}/worktree/open")
+def open_task_worktree(task_id: str, db: Session = Depends(get_db)):
     task = _get_task_or_404(task_id, db)
     if not task.worktree or task.worktree.status != "active":
         raise HTTPException(status_code=404, detail="Task has no active worktree")
+    result = open_worktree(task.worktree.path)
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["error"])
+    return {"ok": True}
 
-    result = remove_worktree(task.worktree.path)
-    if result["success"]:
-        task.worktree.status = "removed"
-        task.worktree_id = None
-        db.commit()
-    else:
-        raise HTTPException(status_code=500, detail=f"Failed to remove worktree: {result['error']}")
+
+@router.delete("/tasks/{task_id}/worktree", status_code=204)
+def delete_task_worktree(task_id: str, db: Session = Depends(get_db)):
+    task = _get_task_or_404(task_id, db)
+    if not task.worktree or task.worktree.status == "removed":
+        raise HTTPException(status_code=404, detail="Task has no worktree to remove")
+
+    if task.worktree.status == "active":
+        result = remove_worktree(task.worktree.path)
+        if not result["success"]:
+            raise HTTPException(status_code=500, detail=f"Failed to remove worktree: {result['error']}")
+    task.worktree.status = "removed"
+    task.worktree_id = None
+    db.commit()
