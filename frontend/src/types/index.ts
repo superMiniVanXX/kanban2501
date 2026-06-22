@@ -43,6 +43,8 @@ export interface Task {
   exclude_from_stats: boolean;
   code_projects: { id: string; name: string }[] | null;
   worktree: Worktree | null;
+  remote_host_id: string | null;
+  remote_host: RemoteHostBrief | null;
   created_at: string;
   updated_at: string;
 }
@@ -148,6 +150,49 @@ export interface Worktree {
   updated_at: string;
 }
 
+export interface RemoteHost {
+  id: string;
+  name: string;
+  description: string | null;
+  ssh_user: string;
+  ssh_host: string;
+  ssh_port: number;
+  base_path_template: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RemoteHostCreate = Pick<RemoteHost,
+  'name' | 'ssh_user' | 'ssh_host' | 'base_path_template'
+> & {
+  description?: string;
+  ssh_port?: number;
+};
+
+export interface RemoteHostBrief {
+  id: string;
+  name: string;
+  ssh_user: string;
+  ssh_host: string;
+  ssh_port: number;
+  base_path_template: string;
+}
+
+export interface SyncRequest {
+  host_id?: string;
+  password?: string;
+}
+
+export interface SyncResult {
+  success: boolean;
+  stdout: string;
+  stderr: string;
+  exit_code: number;
+  command: string;
+  dest_path: string;
+  host_name: string;
+}
+
 export type TaskCreate = Pick<Task, 'title'> & {
   description?: string;
   priority?: Task['priority'];
@@ -158,6 +203,7 @@ export type TaskCreate = Pick<Task, 'title'> & {
   due_date?: string | null;
   tags?: string[];
   worktree_config_id?: string;
+  remote_host_id?: string | null;
 };
 
 export interface SearchResult {

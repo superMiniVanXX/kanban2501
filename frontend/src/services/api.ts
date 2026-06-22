@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate, Statistics, ProjectProgress, TrashData, WorktreeConfig, WorktreeConfigCreate, Worktree } from '../types';
+import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate, Statistics, ProjectProgress, TrashData, WorktreeConfig, WorktreeConfigCreate, Worktree, RemoteHost, RemoteHostCreate, SyncRequest, SyncResult } from '../types';
 
 const api = axios.create({ baseURL: '/api/v1' });
 
@@ -112,6 +112,19 @@ export const openTaskWorktree = (taskId: string) =>
 
 export const deleteTaskWorktree = (taskId: string) =>
   api.delete(`/tasks/${taskId}/worktree`);
+
+// Remote Hosts
+export const remoteHostApi = {
+  list: () => api.get<RemoteHost[]>('/remote-hosts').then(r => r.data),
+  create: (data: RemoteHostCreate) =>
+    api.post<RemoteHost>('/remote-hosts', data).then(r => r.data),
+  update: (id: string, data: Partial<RemoteHostCreate>) =>
+    api.put<RemoteHost>(`/remote-hosts/${id}`, data).then(r => r.data),
+  delete: (id: string) => api.delete(`/remote-hosts/${id}`),
+};
+
+export const syncTask = (taskId: string, body: SyncRequest) =>
+  api.post<SyncResult>(`/tasks/${taskId}/sync`, body).then(r => r.data);
 
 // Recent tasks
 export const getRecentTasks = (limit = 15) =>
