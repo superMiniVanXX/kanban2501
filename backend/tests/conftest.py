@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 # Import models FIRST to register them with Base.metadata
 from app.models import Project  # noqa: F401
+from app.models.remote_host import RemoteHost  # noqa: F401
 from app.database import Base, get_db
 from app import database
 

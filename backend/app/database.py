@@ -180,10 +180,31 @@ def ensure_schema():
                 ")"
             ))
             conn.commit()
+        rh_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(remote_hosts)"))]
+        if not rh_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS remote_hosts ("
+                "id VARCHAR(36) PRIMARY KEY, "
+                "name VARCHAR(200) NOT NULL, "
+                "description TEXT, "
+                "ssh_user VARCHAR(100) NOT NULL, "
+                "ssh_host VARCHAR(255) NOT NULL, "
+                "ssh_port INTEGER NOT NULL DEFAULT 22, "
+                "base_path_template VARCHAR(500) NOT NULL, "
+                "created_at DATETIME, "
+                "updated_at DATETIME"
+                ")"
+            ))
+            conn.commit()
         task_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(tasks)"))]
         if "worktree_id" not in task_cols:
             conn.execute(text(
                 "ALTER TABLE tasks ADD COLUMN worktree_id VARCHAR(36) REFERENCES worktrees(id) ON DELETE SET NULL"
+            ))
+            conn.commit()
+        if "remote_host_id" not in task_cols:
+            conn.execute(text(
+                "ALTER TABLE tasks ADD COLUMN remote_host_id VARCHAR(36) REFERENCES remote_hosts(id) ON DELETE SET NULL"
             ))
             conn.commit()
         # verify_criteria column for quality verification phase
