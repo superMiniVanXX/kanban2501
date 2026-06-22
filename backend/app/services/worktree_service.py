@@ -8,24 +8,36 @@ import re
 logger = logging.getLogger(__name__)
 
 
-def expand_template(template: str, task, project, branch: str | None = None) -> str:
-    slug = re.sub(r'[^a-zA-Z0-9]+', '-', task.title).strip('-').lower()[:60]
+def _slugify(value: str) -> str:
+    return re.sub(r'[^a-zA-Z0-9]+', '-', value).strip('-').lower()[:60]
+
+
+def expand_template(
+    template: str,
+    task,
+    project,
+    branch: str | None = None,
+    extra_vars: dict[str, str] | None = None,
+) -> str:
     variables = {
         "{task_id}": task.id,
         "{task_id_short}": task.id[:8],
         "{task_title}": task.title,
-        "{task_title_slug}": slug,
+        "{task_title_slug}": _slugify(task.title),
         "{task_type}": task.task_type or "",
         "{task_priority}": task.priority or "",
         "{task_assignee}": task.assignee or "",
         "{project_id}": project.id,
         "{project_name}": project.name,
+        "{project_slug}": _slugify(project.name),
     }
     if branch:
         variables["{branch_name}"] = branch
+    if extra_vars:
+        variables.update(extra_vars)
     result = template
     for token, value in variables.items():
-        result = result.replace(token, value)
+        result = result.replace(token, str(value))
     return result
 
 

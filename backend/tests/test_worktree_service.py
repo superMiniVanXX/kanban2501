@@ -49,3 +49,64 @@ def test_expand_template_special_chars_in_title():
     project = MockProject()
     result = expand_template("{task_title_slug}", task, project)
     assert result == "fix-xss-sql-injection"
+
+
+def test_expand_template_supports_project_slug():
+    """New {project_slug} variable should be derived from project name."""
+    class FakeProject:
+        id = "p1"
+        name = "My Cool Project!"
+
+    class FakeTask:
+        id = "task-uuid-1234"
+        title = "Fix Login Bug"
+        task_type = "task"
+        priority = "high"
+        assignee = "alice"
+
+    result = expand_template("/srv/{project_slug}/deploy", FakeTask(), FakeProject())
+    assert result == "/srv/my-cool-project/deploy"
+
+
+def test_expand_template_accepts_extra_vars():
+    """extra_vars should add new tokens without breaking existing ones."""
+    class FakeProject:
+        id = "p1"
+        name = "Demo"
+
+    class FakeTask:
+        id = "t1"
+        title = "Hello"
+        task_type = "task"
+        priority = "medium"
+        assignee = None
+
+    result = expand_template(
+        "/home/{ssh_user}/{project_name}/{task_title_slug}",
+        FakeTask(),
+        FakeProject(),
+        extra_vars={"{ssh_user}": "ubuntu"},
+    )
+    assert result == "/home/ubuntu/Demo/hello"
+
+
+def test_expand_template_extra_vars_overrides_existing():
+    """If extra_vars contains an existing token key, extra_vars wins."""
+    class FakeProject:
+        id = "p1"
+        name = "Demo"
+
+    class FakeTask:
+        id = "t1"
+        title = "Real Title"
+        task_type = "task"
+        priority = "medium"
+        assignee = None
+
+    result = expand_template(
+        "{task_title}",
+        FakeTask(),
+        FakeProject(),
+        extra_vars={"{task_title}": "Override"},
+    )
+    assert result == "Override"
