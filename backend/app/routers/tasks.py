@@ -17,9 +17,12 @@ from app.models.worktree import Worktree
 from app.models.worktree_config import WorktreeConfig
 from app.schemas.task import TaskCreate, TaskUpdate, TaskStatusUpdate, TaskMove, TaskResponse, TaskSearchResponse
 from app.schemas.execution_config import ExecuteRequest, ExecuteResponse
+from app.schemas.remote_host import SyncRequest, SyncResponse
 from app.services.activity_service import log_activity
 from app.services.workflow_service import validate_transition
 from app.services.worktree_service import expand_template, validate_repo, create_worktree, remove_worktree
+from app.services.remote_sync_service import expand_path_template, run_sync
+from app.models.remote_host import RemoteHost
 
 router = APIRouter(tags=["tasks"])
 
@@ -447,3 +450,74 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
             exit_code=-1,
             success=False,
         )
+
+
+@router.post("/tasks/{task_id}/sync", response_model=SyncResponse)
+def sync_task(task_id: str, body: SyncRequest, db: Session = Depends(get_db)):
+    """Sync the task's active worktree to a remote host via rsync.
+
+    Mirrors /execute: failures return 200 with success=false so the caller
+    can surface stderr to the user. The password (if provided) is passed to
+    run_sync via kwargs only — it is never written to the activity_log or
+    returned in the response.
+    """
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if not task.worktree or task.worktree.status != "active":
+        raise HTTPException(
+            status_code=400,
+            detail="Task has no active worktree. Create one first.",
+        )
+
+    # Resolve host: explicit body host_id wins, else task.remote_host_id, else 400.
+    host_id = body.host_id or task.remote_host_id
+    if not host_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No remote host configured. Set one on the task or pass host_id.",
+        )
+
+    host = db.query(RemoteHost).filter(RemoteHost.id == host_id).first()
+    if not host:
+        raise HTTPException(status_code=404, detail="Remote host not found")
+
+    dest_path = expand_path_template(
+        host.base_path_template, task, host, branch=task.worktree.branch
+    )
+
+    result = run_sync(task.worktree.path, host, dest_path, password=body.password)
+
+    # Log to activity log. NEVER include the password anywhere — only the
+    # boolean fact of whether one was used. log_activity already does
+    # json.dumps(extra_data), so we pass a dict (not a pre-encoded string).
+    try:
+        log_activity(
+            db,
+            project_id=task.project_id,
+            event_type="task.synced",
+            entity_type="task",
+            entity_id=task.id,
+            entity_name=task.title,
+            detail=f"Synced to {host.name} ({host.ssh_user}@{host.ssh_host}:{dest_path})",
+            extra_data={
+                "success": result["success"],
+                "exit_code": result["exit_code"],
+                "using_password": body.password is not None,
+                "host_id": host.id,
+            },
+        )
+    except Exception:
+        logger.exception("Failed to write task.synced activity log for task %s", task.id)
+        # Logging failures must not fail the sync response.
+
+    return SyncResponse(
+        success=result["success"],
+        stdout=result["stdout"],
+        stderr=result["stderr"],
+        exit_code=result["exit_code"],
+        command=result["command"],
+        dest_path=dest_path,
+        host_name=host.name,
+    )

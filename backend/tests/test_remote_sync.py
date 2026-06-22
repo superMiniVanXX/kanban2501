@@ -3,6 +3,21 @@ from unittest.mock import patch, MagicMock
 
 
 @pytest.fixture
+def sample_project(client):
+    resp = client.post("/api/v1/projects", json={"name": "Sample Project"})
+    return resp.json()
+
+
+@pytest.fixture
+def sample_task(client, sample_project):
+    resp = client.post(
+        f"/api/v1/projects/{sample_project['id']}/tasks",
+        json={"title": "Sample Task"},
+    )
+    return resp.json()
+
+
+@pytest.fixture
 def fake_host():
     host = MagicMock()
     host.ssh_user = "ubuntu"
@@ -261,3 +276,175 @@ def test_validate_path_safe_helper_unit():
     # Empty
     with pytest.raises(UnsafePathError):
         validate_path_safe("", "dest_path")
+
+
+# ---------------------------------------------------------------------------
+# API: POST /api/v1/tasks/{task_id}/sync (Task 6)
+# ---------------------------------------------------------------------------
+
+
+def test_sync_endpoint_no_worktree(client, sample_task):
+    """Task without a worktree should return 400."""
+    resp = client.post(f"/api/v1/tasks/{sample_task['id']}/sync", json={})
+    assert resp.status_code == 400
+    assert "worktree" in resp.json()["detail"].lower()
+
+
+def test_sync_endpoint_no_host_configured(client, sample_task):
+    """Task with no remote_host_id and no host_id in body should return 400."""
+    # Give the task a worktree so we get past that check.
+    from app.database import SessionLocal
+    from app.models.worktree import Worktree
+    from app.models.task import Task
+
+    db = SessionLocal()
+    try:
+        task = db.query(Task).filter(Task.id == sample_task["id"]).first()
+        wt = Worktree(
+            task_id=task.id,
+            branch="test-branch",
+            path="/tmp/fake-worktree",
+            status="active",
+        )
+        db.add(wt)
+        db.flush()
+        task.worktree_id = wt.id
+        db.commit()
+    finally:
+        db.close()
+
+    resp = client.post(f"/api/v1/tasks/{sample_task['id']}/sync", json={})
+    assert resp.status_code == 400
+    assert "remote host" in resp.json()["detail"].lower()
+
+
+def test_sync_endpoint_host_not_found(client, sample_task):
+    from app.database import SessionLocal
+    from app.models.worktree import Worktree
+    from app.models.task import Task
+
+    db = SessionLocal()
+    try:
+        task = db.query(Task).filter(Task.id == sample_task["id"]).first()
+        wt = Worktree(task_id=task.id, branch="b", path="/tmp/x", status="active")
+        db.add(wt)
+        db.flush()
+        task.worktree_id = wt.id
+        db.commit()
+    finally:
+        db.close()
+
+    resp = client.post(
+        f"/api/v1/tasks/{sample_task['id']}/sync",
+        json={"host_id": "nonexistent"},
+    )
+    assert resp.status_code == 404
+
+
+def test_sync_endpoint_happy_path(client, sample_task):
+    """Successful sync returns SyncResponse and writes activity log."""
+    from app.database import SessionLocal
+    from app.models.worktree import Worktree
+    from app.models.task import Task
+    from app.models.activity_log import ActivityLog
+
+    db = SessionLocal()
+    try:
+        task = db.query(Task).filter(Task.id == sample_task["id"]).first()
+        wt = Worktree(task_id=task.id, branch="b", path="/tmp/myworktree", status="active")
+        db.add(wt)
+        db.flush()
+        task.worktree_id = wt.id
+        db.commit()
+        task_id = task.id
+    finally:
+        db.close()
+
+    host = client.post("/api/v1/remote-hosts", json={
+        "name": "dev",
+        "ssh_user": "ubuntu",
+        "ssh_host": "10.0.0.5",
+        "base_path_template": "/home/{ssh_user}/deploy/{task_title_slug}",
+    }).json()
+
+    mock_result = {
+        "success": True,
+        "stdout": "sent 100 bytes",
+        "stderr": "",
+        "exit_code": 0,
+        "command": "rsync -avz ...",
+    }
+    with patch("app.routers.tasks.run_sync", return_value=mock_result):
+        resp = client.post(
+            f"/api/v1/tasks/{task_id}/sync",
+            json={"host_id": host["id"]},
+        )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert data["host_name"] == "dev"
+    assert data["dest_path"].startswith("/home/ubuntu/deploy/")
+
+    # Verify activity log entry
+    db = SessionLocal()
+    try:
+        log = db.query(ActivityLog).filter(
+            ActivityLog.entity_id == task_id,
+            ActivityLog.event_type == "task.synced",
+        ).first()
+        assert log is not None
+        assert "dev" in log.detail
+        # extra_data must not contain any password value. We sent no password
+        # in this test, so the only "password" token allowed is the boolean
+        # flag key `using_password`. Parse the JSON and assert no password-
+        # bearing *value* is present.
+        import json as _json
+        extra = _json.loads(log.extra_data) if log.extra_data else {}
+        assert set(extra.keys()) <= {"success", "exit_code", "using_password", "host_id"}
+        # No "password" key (only the boolean "using_password" flag is allowed).
+        assert "password" not in extra
+    finally:
+        db.close()
+
+
+def test_sync_endpoint_password_not_in_response(client, sample_task):
+    """Password from request must not leak into response."""
+    from app.database import SessionLocal
+    from app.models.worktree import Worktree
+    from app.models.task import Task
+
+    db = SessionLocal()
+    try:
+        task = db.query(Task).filter(Task.id == sample_task["id"]).first()
+        wt = Worktree(task_id=task.id, branch="b", path="/tmp/wt", status="active")
+        db.add(wt)
+        db.flush()
+        task.worktree_id = wt.id
+        db.commit()
+        task_id = task.id
+    finally:
+        db.close()
+
+    host = client.post("/api/v1/remote-hosts", json={
+        "name": "dev",
+        "ssh_user": "u",
+        "ssh_host": "h",
+        "base_path_template": "/x",
+    }).json()
+
+    mock_result = {
+        "success": True, "stdout": "", "stderr": "", "exit_code": 0, "command": "rsync",
+    }
+    with patch("app.routers.tasks.run_sync", return_value=mock_result) as mock_fn:
+        resp = client.post(f"/api/v1/tasks/{task_id}/sync", json={
+            "host_id": host["id"],
+            "password": "super-secret-pw",
+        })
+
+    assert resp.status_code == 200
+    # Password must not appear in response body anywhere
+    assert "super-secret-pw" not in resp.text
+    # The service must have been called with the password
+    mock_fn.assert_called_once()
+    assert mock_fn.call_args.kwargs.get("password") == "super-secret-pw"
