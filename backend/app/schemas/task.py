@@ -28,6 +28,7 @@ class TaskCreate(BaseModel):
     code_project_ids: list[str] | None = None
     exclude_from_stats: bool = False
     worktree_config_id: str | None = None
+    remote_host_id: str | None = None
 
 
 class TaskUpdate(BaseModel):
@@ -49,6 +50,7 @@ class TaskUpdate(BaseModel):
     code_project_ids: list[str] | None = None
     exclude_from_stats: bool | None = None
     worktree_config_id: str | None = None
+    remote_host_id: str | None = None
 
 
 class TaskStatusUpdate(BaseModel):
@@ -85,6 +87,8 @@ class TaskResponse(BaseModel):
     exclude_from_stats: bool = False
     code_projects: list[CodeProjectBrief] | None = None
     worktree: WorktreeBrief | None = None
+    remote_host_id: str | None = None
+    remote_host: "RemoteHostBrief | None" = None
     created_at: datetime
     updated_at: datetime
 
@@ -102,5 +106,16 @@ class TaskSearchResponse(BaseModel):
     due_date: date | None
     sub_project_id: str | None
     project_name: str
+
+    model_config = {"from_attributes": True}
+
+
+class RemoteHostBrief(BaseModel):
+    id: str
+    name: str
+    ssh_user: str
+    ssh_host: str
+    ssh_port: int
+    base_path_template: str
 
     model_config = {"from_attributes": True}

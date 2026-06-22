@@ -7,6 +7,18 @@ def project_id(client):
     return resp.json()["id"]
 
 
+@pytest.fixture
+def sample_project(client):
+    resp = client.post("/api/v1/projects", json={"name": "Sample Project"})
+    return resp.json()
+
+
+@pytest.fixture
+def sample_task(client, sample_project):
+    resp = client.post(f"/api/v1/projects/{sample_project['id']}/tasks", json={"title": "Sample Task"})
+    return resp.json()
+
+
 def test_create_task(client, project_id):
     resp = client.post(f"/api/v1/projects/{project_id}/tasks", json={
         "title": "Task 1",
@@ -103,3 +115,53 @@ def test_board_includes_tasks_in_columns(client, project_id):
 
     progress_col = next(c for c in data["columns"] if c["column_status"] == "in_progress")
     assert len(progress_col["tasks"]) == 1
+
+
+def test_create_task_with_remote_host_id(client, sample_project):
+    """TaskCreate accepts remote_host_id and stores it."""
+    # First create a host
+    host = client.post("/api/v1/remote-hosts", json={
+        "name": "dev",
+        "ssh_user": "u",
+        "ssh_host": "h",
+        "base_path_template": "/srv/{task_title_slug}",
+    }).json()
+
+    resp = client.post(f"/api/v1/projects/{sample_project['id']}/tasks", json={
+        "title": "Task with host",
+        "remote_host_id": host["id"],
+    })
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["remote_host_id"] == host["id"]
+    assert data["remote_host"]["name"] == "dev"
+
+
+def test_update_task_remote_host_id(client, sample_task):
+    host = client.post("/api/v1/remote-hosts", json={
+        "name": "staging",
+        "ssh_user": "u",
+        "ssh_host": "h",
+        "base_path_template": "/srv/{task_title_slug}",
+    }).json()
+
+    resp = client.put(f"/api/v1/tasks/{sample_task['id']}", json={
+        "remote_host_id": host["id"],
+    })
+    assert resp.status_code == 200
+    assert resp.json()["remote_host_id"] == host["id"]
+
+
+def test_clear_task_remote_host_id(client, sample_task):
+    host = client.post("/api/v1/remote-hosts", json={
+        "name": "staging",
+        "ssh_user": "u",
+        "ssh_host": "h",
+        "base_path_template": "/srv/{task_title_slug}",
+    }).json()
+    client.put(f"/api/v1/tasks/{sample_task['id']}", json={"remote_host_id": host["id"]})
+
+    # Clear it
+    resp = client.put(f"/api/v1/tasks/{sample_task['id']}", json={"remote_host_id": None})
+    assert resp.status_code == 200
+    assert resp.json()["remote_host_id"] is None

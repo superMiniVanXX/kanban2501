@@ -46,6 +46,7 @@ class Task(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
     worktree_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("worktrees.id", ondelete="SET NULL"), nullable=True)
+    remote_host_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("remote_hosts.id", ondelete="SET NULL"), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -54,6 +55,7 @@ class Task(Base):
     sub_project = relationship("Project", foreign_keys=[sub_project_id])
     code_projects = relationship("CodeProject", secondary="task_code_projects", backref="related_tasks")
     worktree = relationship("Worktree", foreign_keys=[worktree_id])
+    remote_host = relationship("RemoteHost", foreign_keys=[remote_host_id], lazy="joined")
 
 
 class TaskCodeProject(Base):
