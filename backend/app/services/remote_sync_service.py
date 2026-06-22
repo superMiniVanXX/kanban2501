@@ -1,5 +1,6 @@
 """Service for rsync-ing a task's worktree contents to a remote host."""
 import os
+import posixpath
 import shutil
 import subprocess
 from subprocess import TimeoutExpired
@@ -8,6 +9,42 @@ from app.services.worktree_service import expand_template
 
 
 RSYNC_TIMEOUT_SECONDS = 300
+
+
+class UnsafePathError(ValueError):
+    """Raised when an expanded path contains traversal components."""
+
+
+def validate_path_safe(path: str, field_name: str = "path") -> None:
+    """Reject paths containing '..' components or other traversal patterns.
+
+    rsync destinations are remote paths; we use posixpath (forward slashes)
+    regardless of local OS. Two-pronged check:
+
+      1. Reject any '..' segment in the *original* path — this catches cases
+         like '/home/x/../../etc' (normalizes to '/etc' but the user clearly
+         intended to traverse out of '/home/x').
+      2. Reject if the *normalized* path escapes upward (starts with '..' or
+         equals '..') — catches relative traversals like '../../etc'.
+    """
+    if not path:
+        raise UnsafePathError(f"{field_name} is empty")
+    # Check 1: any '..' segment in the original path.
+    segments = path.split("/")
+    if ".." in segments:
+        raise UnsafePathError(
+            f"{field_name} contains '..' traversal components: {path!r}"
+        )
+    # Check 2: normalized form must not escape upward.
+    normalized = posixpath.normpath(path)
+    if normalized == ".." or normalized.startswith("../"):
+        raise UnsafePathError(
+            f"{field_name} contains '..' traversal components: {path!r}"
+        )
+    # Reject backslashes too (could be interpreted by some shells/clients)
+    if "\\" in path:
+        raise UnsafePathError(f"{field_name} contains backslash: {path!r}")
+
 
 DEFAULT_EXCLUDES = [
     ".git/",
@@ -72,6 +109,21 @@ def run_sync(src_path: str, host, dest_path: str, password: str | None = None) -
             "success": False,
             "stdout": "",
             "stderr": "`rsync` is not installed on the server. Install with `apt install rsync` (or equivalent).",
+            "exit_code": -1,
+            "command": "",
+        }
+
+    # Security (Finding 3): defend against path traversal via user-controlled
+    # template variables ({task_title}, {project_name}, {branch_name}). Reject
+    # before we build the rsync argv or invoke subprocess.
+    try:
+        validate_path_safe(src_path, "src_path")
+        validate_path_safe(dest_path, "dest_path")
+    except UnsafePathError as e:
+        return {
+            "success": False,
+            "stdout": "",
+            "stderr": f"Path validation failed: {e}",
             "exit_code": -1,
             "command": "",
         }

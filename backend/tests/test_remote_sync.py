@@ -171,3 +171,93 @@ def test_run_sync_timeout(fake_host):
 
     assert result["success"] is False
     assert "timed out" in result["stderr"].lower() or "timeout" in result["stderr"].lower()
+
+
+# ---------------------------------------------------------------------------
+# Security: path traversal rejection in run_sync (Finding 3)
+# ---------------------------------------------------------------------------
+
+def test_run_sync_rejects_dest_path_traversal(fake_host):
+    """A dest_path that escapes its base via '..' must be rejected before subprocess."""
+    from app.services.remote_sync_service import run_sync
+
+    mock_proc = MagicMock()
+    mock_proc.stdout = ""
+    mock_proc.stderr = "",
+    mock_proc.returncode = 0
+
+    with patch("app.services.remote_sync_service.subprocess.run", return_value=mock_proc) as mock_run:
+        result = run_sync("/src", fake_host, "/home/x/../../etc", password=None)
+
+    assert result["success"] is False
+    assert result["exit_code"] == -1
+    assert "validation" in result["stderr"].lower() or ".." in result["stderr"]
+    # Critical: subprocess must never have been invoked
+    mock_run.assert_not_called()
+
+
+def test_run_sync_rejects_src_path_traversal(fake_host):
+    """Defense in depth: src_path with traversal must also be rejected."""
+    from app.services.remote_sync_service import run_sync
+
+    with patch("app.services.remote_sync_service.subprocess.run") as mock_run:
+        result = run_sync("/src/../../etc", fake_host, "/dest", password=None)
+
+    assert result["success"] is False
+    assert "validation" in result["stderr"].lower() or ".." in result["stderr"]
+    mock_run.assert_not_called()
+
+
+def test_run_sync_rejects_backslash_in_dest(fake_host):
+    """Backslash in dest_path could be interpreted by some shells/clients — reject."""
+    from app.services.remote_sync_service import run_sync
+
+    with patch("app.services.remote_sync_service.subprocess.run") as mock_run:
+        result = run_sync("/src", fake_host, "/home/x\\evil", password=None)
+
+    assert result["success"] is False
+    mock_run.assert_not_called()
+
+
+def test_run_sync_accepts_safe_absolute_path(fake_host):
+    """Regression: legitimate absolute paths must still pass validation."""
+    from app.services.remote_sync_service import run_sync
+
+    mock_proc = MagicMock()
+    mock_proc.stdout = ""
+    mock_proc.stderr = ""
+    mock_proc.returncode = 0
+
+    with patch("app.services.remote_sync_service.subprocess.run", return_value=mock_proc) as mock_run:
+        result = run_sync(
+            "/home/user/deploy/task",
+            fake_host,
+            "/home/ubuntu/deploy/fix-login-bug",
+            password=None,
+        )
+
+    assert result["success"] is True
+    mock_run.assert_called_once()
+
+
+def test_validate_path_safe_helper_unit():
+    """Direct unit test of the helper for clarity."""
+    from app.services.remote_sync_service import validate_path_safe, UnsafePathError
+
+    # Safe paths
+    validate_path_safe("/home/user/deploy/task")
+    validate_path_safe("/srv/app/fix-login-bug")
+    validate_path_safe("relative/path")
+
+    # Unsafe paths
+    for bad in ("/home/x/../../etc", "../../etc", "/..", "/a/../..", ".."):
+        with pytest.raises(UnsafePathError):
+            validate_path_safe(bad, "dest_path")
+
+    # Backslash
+    with pytest.raises(UnsafePathError):
+        validate_path_safe("/home/x\\y", "dest_path")
+
+    # Empty
+    with pytest.raises(UnsafePathError):
+        validate_path_safe("", "dest_path")
