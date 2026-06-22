@@ -90,6 +90,12 @@ backend/app/
 - **`ensure_schema()`** in `database.py` acts as a lightweight auto-migration — it calls `Base.metadata.create_all()`, then checks `PRAGMA table_info` for each column and adds missing ones with `ALTER TABLE`. This is where new columns/table additions should go.
 - **UUID primary keys** — all models use `str(36)` IDs generated via `uuid.uuid4()`.
 - **Task execution** (`POST /tasks/{id}/execute`) — takes a `config_id`, expands `{task_*}` placeholders in the command template, and resolves `##workdir##` to the first linked CodeProject's path. Commands run via `subprocess.run` with 30-second timeout.
+- **Remote Sync (rsync)** (`POST /tasks/{id}/sync`) — syncs task worktree files to a remote host via rsync:
+  - Hosts are managed in `RemoteHost` (Settings → Remote Hosts tab) with `ssh_user`, `ssh_host`, `ssh_port`, and a `base_path_template` supporting `{task_title_slug}`, `{ssh_user}`, `{ssh_host}`, `{branch_name}`, etc. (same variables as `expand_template`).
+  - Auth uses SSH keys by default. If the user supplies a password in the sync request, the backend wraps rsync with `sshpass -e` (reads password from `SSHPASS` env var on the subprocess only).
+  - **No passwords are ever stored in the DB** — they exist only in the request body and the subprocess env.
+  - Fixed rsync flags: `-avz --delete` with excludes for `.git/`, `node_modules/`, `__pycache__/`, `*.pyc`, `.venv/`, `dist/`, `build/`, `.DS_Store`.
+  - Server dependencies: `rsync` (required) and `sshpass` (only if password auth is used). Install with `apt install rsync sshpass` on Debian/Ubuntu.
 
 ### Testing
 
