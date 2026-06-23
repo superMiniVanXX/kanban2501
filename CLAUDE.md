@@ -126,7 +126,7 @@ Key dependencies: `@hello-pangea/dnd` for drag-and-drop, `axios` for API calls, 
 
 ### Services & Integration
 
-The `kanban-api` skill (Claude Code integration) wraps the full REST API — defined in `ai/skills/kanban-api/`. The `debian-project-sync` skill discovers debian-packaged projects from source trees and syncs them as CodeProjects.
+The `kanban-api` skill (Claude Code integration) wraps the full REST API — defined in `skills/kanban-api/`. The `debian-project-sync` skill discovers debian-packaged projects from source trees and syncs them as CodeProjects.
 
 ### Frontend Architecture
 

@@ -1,11 +1,42 @@
-# kanban/.gitignore
+# Kanban-PMP .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+backend/.venv/
 backend/venv/
+
+# Database
 backend/data/*.db
-backend/static/
+
+# Frontend
 frontend/node_modules/
 frontend/dist/
+backend/static/
+
+# Logs
+*.log
+logs/
+
+# Runtime
 .kanban.pid
-kanban.log
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code (local config)
 .claude/
 
+# Codegraph (local index)
 .codegraph/
+
+# Superpowers (SDD artifacts)
+.superpowers/
+
+# OS
+.DS_Store
+Thumbs.db
