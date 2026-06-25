@@ -46,6 +46,18 @@ class ProjectProgressResponse(BaseModel):
     progress: int = 0
 
 
+class TaskStatusCounts(BaseModel):
+    backlog: int = 0
+    todo: int = 0
+    in_progress: int = 0
+    review: int = 0
+    done: int = 0
+    verify: int = 0
+    complete: int = 0
+    cancelled: int = 0
+    total: int = 0
+
+
 class ProjectTreeResponse(BaseModel):
     id: str
     name: str
@@ -59,6 +71,7 @@ class ProjectTreeResponse(BaseModel):
     updated_at: datetime
     is_completed: bool = False
     progress: int = 0
+    task_counts: TaskStatusCounts = Field(default_factory=TaskStatusCounts)
     children: list[ProjectTreeResponse] = []
 
     model_config = {"from_attributes": True}

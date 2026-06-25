@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models.project import Project
 from app.models.task import Task
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectStatusUpdate, ProjectResponse, ProjectTreeResponse, ProjectProgressResponse
-from app.services.project_service import build_project_tree, would_create_cycle
+from app.services.project_service import build_project_tree, would_create_cycle, TASK_STATUSES
 from app.services.activity_service import log_activity
 
 router = APIRouter(tags=["projects"])
@@ -43,7 +43,18 @@ def list_project_tree(db: Session = Depends(get_db)):
     excluded_project_ids = {p.id for p in all_projects if p.exclude_from_stats}
     completion_map: dict[str, bool] = {}
     hours_stats: dict[str, dict] = {}
+    task_counts_map: dict[str, dict[str, int]] = {}
     for pid, tasks in tasks_by_project.items():
+        # task_counts is factual data — compute for all projects, including excluded ones.
+        # Excludes only tasks flagged exclude_from_stats; cancelled tasks are counted.
+        counts: dict[str, int] = {k: 0 for k in TASK_STATUSES}
+        for t in tasks:
+            if t.exclude_from_stats:
+                continue
+            if t.status in counts:
+                counts[t.status] += 1
+        task_counts_map[pid] = counts
+
         if pid in excluded_project_ids:
             continue
         active = [t for t in tasks if t.status != "cancelled" and not t.exclude_from_stats]
@@ -51,7 +62,7 @@ def list_project_tree(db: Session = Depends(get_db)):
         total_hours = sum(t.estimated_hours or 0 for t in active)
         done_hours = sum(t.estimated_hours or 0 for t in active if t.status == "done")
         hours_stats[pid] = {"total": total_hours, "done": done_hours}
-    return build_project_tree(all_projects, completion_map, hours_stats)
+    return build_project_tree(all_projects, completion_map, hours_stats, task_counts_map)
 
 
 @router.get("/projects/{project_id}", response_model=ProjectResponse)

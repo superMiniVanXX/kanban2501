@@ -11,9 +11,22 @@ export interface Project {
   updated_at: string;
 }
 
+export interface TaskStatusCounts {
+  backlog: number;
+  todo: number;
+  in_progress: number;
+  review: number;
+  done: number;
+  verify: number;
+  complete: number;
+  cancelled: number;
+  total: number;
+}
+
 export interface ProjectTree extends Project {
   is_completed: boolean;
   progress: number;
+  task_counts: TaskStatusCounts;
   children: ProjectTree[];
 }
 
