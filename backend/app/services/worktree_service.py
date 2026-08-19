@@ -9,7 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 def _slugify(value: str) -> str:
-    return re.sub(r'[^a-zA-Z0-9]+', '-', value).strip('-').lower()[:60]
+    # Keep Unicode word characters (letters/digits incl. CJK) so Chinese project
+    # names survive; only replace shell-unsafe separators (spaces, punctuation,
+    # arrows, full-width colons …) with '-'. Pure-ASCII slug would erase CJK
+    # entirely and produce empty/ambiguous directory names.
+    return re.sub(r"[^\w]+", "-", value, flags=re.UNICODE).strip("-").lower()[:60]
 
 
 def expand_template(
@@ -113,6 +117,39 @@ def remove_worktree(path: str) -> dict:
         return {"success": False, "error": "git worktree remove timed out after 10 seconds"}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+def import_worktree(path: str) -> dict:
+    """Associate an EXISTING directory with a task as its worktree.
+
+    Unlike create_worktree this does NOT run `git worktree add` — the
+    directory already exists on disk (user-created). We only validate the
+    path and, if it happens to be a git repository, read its current branch
+    so the record carries useful info. Plain folders (no .git) are allowed:
+    branch is left empty and the user manages git state themselves.
+
+    Returns {"success": True, "branch": str | None} on success.
+    """
+    target = Path(path).resolve()
+    if not target.exists():
+        return {"success": False, "error": f"Path does not exist: {target}"}
+    if not target.is_dir():
+        return {"success": False, "error": f"Path is not a directory: {target}"}
+
+    branch: str | None = None
+    if (target / ".git").exists() or (target / ".git").is_file():
+        try:
+            result = subprocess.run(
+                ["git", "-C", str(target), "rev-parse", "--abbrev-ref", "HEAD"],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode == 0:
+                branch = result.stdout.strip() or None
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass  # non-git dir or git missing — branch stays None
+
+    logger.info("Imported existing worktree: path=%s branch=%s", target, branch)
+    return {"success": True, "branch": branch, "error": None}
 
 
 def open_worktree(path: str) -> dict:

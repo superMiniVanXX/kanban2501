@@ -46,6 +46,7 @@ class Task(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
     worktree_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("worktrees.id", ondelete="SET NULL"), nullable=True)
+    worktree_config_id: Mapped[str | None] = mapped_column(String(36), nullable=True, default=None)
     remote_host_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("remote_hosts.id", ondelete="SET NULL"), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

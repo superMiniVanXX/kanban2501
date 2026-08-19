@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { getStatistics, getProjects, getProjectProgress } from '../services/api';
-import type { Statistics, Project, ProjectProgress } from '../types';
+import type { Project, ProjectProgress } from '../types';
 
 interface ProjectStats {
   project: Project;

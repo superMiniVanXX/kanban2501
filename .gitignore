@@ -11,11 +11,14 @@ backend/venv/
 
 # Database
 backend/data/*.db
+backend/data/*.bak*
+backend/kanban.db
 
 # Frontend
 frontend/node_modules/
 frontend/dist/
 backend/static/
+*.tsbuildinfo
 
 # Logs
 *.log

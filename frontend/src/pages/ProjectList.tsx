@@ -3,6 +3,7 @@ import { getProjectTree, createProject, deleteProject, updateProject } from '../
 import type { ProjectTree as ProjectTreeType, Project } from '../types';
 import CreateProjectModal from '../components/CreateProjectModal';
 import ProjectBentoCard from '../components/ProjectBentoCard';
+import RecentActivityBoard from '../components/RecentActivityBoard';
 import { computeCardWidth } from '../utils/projectSizing';
 
 const CARD_ACCENTS = [
@@ -80,6 +81,8 @@ export default function ProjectList() {
           + New Project
         </button>
       </div>
+
+      <RecentActivityBoard />
 
       {loading ? (
         <div className="flex items-center justify-center py-20">

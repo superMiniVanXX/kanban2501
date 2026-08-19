@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Project, ProjectCreate, ProjectTree, Task, TaskCreate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate, Statistics, ProjectProgress, TrashData, WorktreeConfig, WorktreeConfigCreate, Worktree, RemoteHost, RemoteHostCreate, SyncRequest, SyncResult } from '../types';
+import type { Project, ActivityTask, ProjectCreate, ProjectTree, Task, TaskCreate, TaskUpdate, Board, ExecutionConfig, ExecutionConfigCreate, ExecuteResult, ActivityLog, SearchResult, CodeProject, CodeProjectCreate, Statistics, ProjectProgress, TrashData, WorktreeConfig, WorktreeConfigCreate, Worktree, WorktreeCreateParams, RemoteHost, RemoteHostCreate, SyncRequest, SyncResult, NotificationChannel, NotificationChannelCreate, NotificationChannelUpdate, NotificationLog, NotificationItem, AgentEventResult, SyncHooksResult } from '../types';
 
 const api = axios.create({ baseURL: '/api/v1' });
 
@@ -32,7 +32,7 @@ export const getTasks = (projectId: string, status?: string) =>
 export const createTask = (projectId: string, data: TaskCreate) =>
   api.post<Task>(`/projects/${projectId}/tasks`, data).then((r) => r.data);
 
-export const updateTask = (taskId: string, data: Partial<Task>) =>
+export const updateTask = (taskId: string, data: TaskUpdate) =>
   api.put<Task>(`/tasks/${taskId}`, data).then((r) => r.data);
 
 export const deleteTask = (taskId: string) =>
@@ -98,14 +98,17 @@ export const deleteWorktreeConfig = (id: string) =>
   api.delete(`/worktree-configs/${id}`);
 
 // Task Worktree
-export const createTaskWorktree = (taskId: string, configId: string) =>
-  api.post<Worktree>(`/tasks/${taskId}/worktree`, { config_id: configId }).then((r) => r.data);
+export const createTaskWorktree = (taskId: string, params: WorktreeCreateParams) =>
+  api.post<Worktree>(`/tasks/${taskId}/worktree`, params).then((r) => r.data);
 
 export const getTaskWorktree = (taskId: string) =>
   api.get<Worktree>(`/tasks/${taskId}/worktree`).then((r) => r.data);
 
-export const rebuildTaskWorktree = (taskId: string, configId: string) =>
-  api.put<Worktree>(`/tasks/${taskId}/worktree`, { config_id: configId }).then((r) => r.data);
+export const importTaskWorktree = (taskId: string, path: string) =>
+  api.post<Worktree>(`/tasks/${taskId}/worktree/import`, { path }).then((r) => r.data);
+
+export const rebuildTaskWorktree = (taskId: string, params: WorktreeCreateParams) =>
+  api.put<Worktree>(`/tasks/${taskId}/worktree`, params).then((r) => r.data);
 
 export const openTaskWorktree = (taskId: string) =>
   api.post(`/tasks/${taskId}/worktree/open`);
@@ -130,6 +133,10 @@ export const syncTask = (taskId: string, body: SyncRequest) =>
 export const getRecentTasks = (limit = 15) =>
   api.get<SearchResult[]>('/tasks/recent', { params: { limit } }).then((r) => r.data);
 
+// Recent activity board
+export const getRecentActivity = (days: number = 7) =>
+  api.get<ActivityTask[]>('/tasks/activity', { params: { days } }).then((r) => r.data);
+
 // Search
 export const searchTasks = (q: string) =>
   api.get<SearchResult[]>('/tasks/search', { params: { q } }).then((r) => r.data);
@@ -147,3 +154,99 @@ export const restoreProject = (id: string) =>
 
 export const restoreTask = (id: string) =>
   api.post<Task>(`/tasks/${id}/restore`).then((r) => r.data);
+
+// Notification Channels
+export async function getNotificationChannels(): Promise<NotificationChannel[]> {
+  const r = await api.get('/notification-channels');
+  return r.data;
+}
+
+export async function createNotificationChannel(
+  payload: NotificationChannelCreate,
+): Promise<NotificationChannel> {
+  const r = await api.post('/notification-channels', payload);
+  return r.data;
+}
+
+export async function updateNotificationChannel(
+  id: string,
+  payload: NotificationChannelUpdate,
+): Promise<NotificationChannel> {
+  const r = await api.put(`/notification-channels/${id}`, payload);
+  return r.data;
+}
+
+export async function deleteNotificationChannel(id: string): Promise<void> {
+  await api.delete(`/notification-channels/${id}`);
+}
+
+export async function testNotificationChannel(
+  id: string,
+): Promise<{ matched: number; status: string; detail: string | null; log_id: string | null }> {
+  const r = await api.post(`/notification-channels/${id}/test`);
+  return r.data;
+}
+
+export async function getNotificationLogs(
+  channelId?: string,
+  limit = 100,
+): Promise<NotificationLog[]> {
+  const params: Record<string, unknown> = { limit };
+  if (channelId) params.channel_id = channelId;
+  const r = await api.get('/notification-logs', { params });
+  return r.data;
+}
+
+export async function postAgentEvent(payload: {
+  event_type?: string;
+  hook_event_name?: string;
+  task_id?: string;
+  project_id?: string;
+  agent?: string;
+  message?: string;
+  cwd?: string;
+}): Promise<AgentEventResult> {
+  const r = await api.post('/agent-events', payload);
+  return r.data;
+}
+
+// Hook sync
+export async function syncHooks(): Promise<SyncHooksResult> {
+  const r = await api.post('/hooks/sync');
+  return r.data;
+}
+
+// Notification Queue (in-app notifications)
+export async function getNotifications(opts?: {
+  unreadOnly?: boolean;
+  limit?: number;
+}): Promise<NotificationItem[]> {
+  const params: Record<string, unknown> = { limit: opts?.limit ?? 50 };
+  if (opts?.unreadOnly) params.unread_only = true;
+  const r = await api.get('/notifications', { params });
+  return r.data;
+}
+
+export async function getUnreadNotificationCount(): Promise<{ count: number }> {
+  const r = await api.get('/notifications/unread-count');
+  return r.data;
+}
+
+export async function markNotificationRead(id: string): Promise<NotificationItem> {
+  const r = await api.put(`/notifications/${id}/read`);
+  return r.data;
+}
+
+export async function markAllNotificationsRead(): Promise<{ count: number }> {
+  const r = await api.put('/notifications/read-all');
+  return r.data;
+}
+
+export async function dismissNotification(id: string): Promise<void> {
+  await api.delete(`/notifications/${id}`);
+}
+
+export async function clearReadNotifications(): Promise<{ count: number }> {
+  const r = await api.delete('/notifications');
+  return r.data;
+}

@@ -9,6 +9,8 @@ Project management platform with hierarchical projects, kanban task boards, and 
 - **Task Workflow** — structured lifecycle: backlog → todo → in_progress → review → done → verify → complete
 - **Code Project Tracking** — link Git repositories and track branches/worktrees per task
 - **Git Worktree Integration** — create and manage git worktrees from tasks, sync to remote hosts via rsync
+- **Task Notifications** — notification channels (desktop/webhook/sound/email) triggered on task status transitions, with in-app queue, delivery logs, and Claude Code agent hook integration
+- **Recent Activity Board** — home page overview of recently active tasks
 - **Statistics** — daily/weekly/monthly completion charts
 - **Soft Delete & Trash** — recoverable deletes with trash page
 
@@ -101,6 +103,12 @@ Key endpoints:
 | GET/PUT/DELETE | `/api/v1/tasks/{id}` | Task CRUD |
 | PUT | `/api/v1/tasks/{id}/status` | Update task status |
 | POST | `/api/v1/tasks/{id}/execute` | Execute task command |
+| GET/POST | `/api/v1/notification-channels` | Notification channel CRUD |
+| POST | `/api/v1/notification-channels/{id}/test` | Send a test notification |
+| POST | `/api/v1/agent-events` | Receive Claude Code agent hook events |
+| GET | `/api/v1/notification-logs` | Notification delivery logs |
+| GET | `/api/v1/notifications` | In-app notification queue |
+| GET | `/api/v1/tasks/activity` | Recent activity board data |
 
 ## Testing
 

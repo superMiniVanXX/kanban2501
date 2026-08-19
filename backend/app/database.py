@@ -171,6 +171,7 @@ def ensure_schema():
                 "id VARCHAR(36) PRIMARY KEY, "
                 "task_id VARCHAR(36) NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, "
                 "config_id VARCHAR(36) REFERENCES worktree_configs(id) ON DELETE SET NULL, "
+                "base_repo_path VARCHAR(1000), "
                 "branch VARCHAR(500) NOT NULL, "
                 "path VARCHAR(1000) NOT NULL, "
                 "status VARCHAR(20) DEFAULT 'pending', "
@@ -179,6 +180,10 @@ def ensure_schema():
                 "updated_at DATETIME"
                 ")"
             ))
+            conn.commit()
+        wt_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(worktrees)"))]
+        if "base_repo_path" not in wt_cols:
+            conn.execute(text("ALTER TABLE worktrees ADD COLUMN base_repo_path VARCHAR(1000)"))
             conn.commit()
         rh_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(remote_hosts)"))]
         if not rh_cols:
@@ -206,6 +211,9 @@ def ensure_schema():
             conn.execute(text(
                 "ALTER TABLE tasks ADD COLUMN remote_host_id VARCHAR(36) REFERENCES remote_hosts(id) ON DELETE SET NULL"
             ))
+            conn.commit()
+        if "worktree_config_id" not in task_cols:
+            conn.execute(text("ALTER TABLE tasks ADD COLUMN worktree_config_id VARCHAR(36)"))
             conn.commit()
         # verify_criteria column for quality verification phase
         task_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(tasks)"))]
@@ -235,3 +243,34 @@ def ensure_schema():
                     "VALUES (lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-4' || substr(hex(randomblob(2)),2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(hex(randomblob(2)),2) || '-' || hex(randomblob(6))), :bid, 'Complete', 'complete', NULL, :sort)"
                 ), {"bid": board_id, "sort": max_order + 2})
                 conn.commit()
+        # notification_items table
+        ni_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(notification_items)"))]
+        if not ni_cols:
+            conn.execute(text(
+                "CREATE TABLE IF NOT EXISTS notification_items ("
+                "id VARCHAR(36) PRIMARY KEY, "
+                "event_type VARCHAR(50) NOT NULL, "
+                "source VARCHAR(100), "
+                "title VARCHAR(300) NOT NULL, "
+                "message TEXT, "
+                "task_id VARCHAR(36), "
+                "project_id VARCHAR(36), "
+                "severity VARCHAR(20) NOT NULL DEFAULT 'info', "
+                "read_at DATETIME, "
+                "created_at DATETIME"
+                ")"
+            ))
+            conn.commit()
+            conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_notification_items_task_id "
+                "ON notification_items(task_id)"
+            ))
+            conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_notification_items_project_id "
+                "ON notification_items(project_id)"
+            ))
+            conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_notification_items_created_at "
+                "ON notification_items(created_at)"
+            ))
+            conn.commit()

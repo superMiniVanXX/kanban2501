@@ -16,9 +16,10 @@ from app.models.task_status_history import TaskStatusHistory
 from app.models.worktree import Worktree
 from app.models.worktree_config import WorktreeConfig
 from app.schemas.task import TaskCreate, TaskUpdate, TaskStatusUpdate, TaskMove, TaskResponse, TaskSearchResponse
+from app.schemas.activity import ActivityTaskResponse
 from app.schemas.execution_config import ExecuteRequest, ExecuteResponse
 from app.schemas.remote_host import SyncRequest, SyncResponse
-from app.services.activity_service import log_activity
+from app.services.activity_service import log_activity, get_recent_activity
 from app.services.workflow_service import validate_transition
 from app.services.worktree_service import expand_template, validate_repo, create_worktree, remove_worktree
 from app.services.remote_sync_service import expand_path_template, run_sync
@@ -51,21 +52,33 @@ def _activate_pending_worktree(task: Task, db: Session) -> dict:
     if not task.worktree or task.worktree.status != "pending":
         return {"success": True, "error": None}
 
-    wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == task.worktree.config_id).first()
-    if not wt_config:
-        task.worktree.status = "error"
-        task.worktree.error_message = "Worktree config not found"
-        db.commit()
-        return {"success": False, "error": "Worktree config not found"}
+    # Determine the base repo path: from the linked WorktreeConfig (template
+    # mode) or from the worktree row itself (manual mode where config_id is
+    # None and base_repo_path was stored on the worktree at creation time).
+    if task.worktree.config_id:
+        wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == task.worktree.config_id).first()
+        if not wt_config:
+            task.worktree.status = "error"
+            task.worktree.error_message = "Worktree config not found"
+            db.commit()
+            return {"success": False, "error": "Worktree config not found"}
+        base_repo = wt_config.base_repo_path
+    else:
+        base_repo = task.worktree.base_repo_path
+        if not base_repo:
+            task.worktree.status = "error"
+            task.worktree.error_message = "No base repo path for manual worktree"
+            db.commit()
+            return {"success": False, "error": "No base repo path for manual worktree"}
 
-    repo_check = validate_repo(wt_config.base_repo_path)
+    repo_check = validate_repo(base_repo)
     if not repo_check["valid"]:
         task.worktree.status = "error"
         task.worktree.error_message = repo_check["error"]
         db.commit()
         return {"success": False, "error": repo_check["error"]}
 
-    result = create_worktree(wt_config.base_repo_path, task.worktree.branch, task.worktree.path)
+    result = create_worktree(base_repo, task.worktree.branch, task.worktree.path)
     if result["success"]:
         task.worktree.status = "active"
     else:
@@ -101,6 +114,14 @@ def recent_tasks(limit: int = 15, db: Session = Depends(get_db)):
         )
         for t, pn in rows
     ]
+
+
+@router.get("/tasks/activity", response_model=list[ActivityTaskResponse])
+def recent_activity(days: int = 7, db: Session = Depends(get_db)):
+    try:
+        return get_recent_activity(db, days)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="days must be one of 1, 3, 7")
 
 
 @router.get("/tasks/search", response_model=list[TaskSearchResponse])
@@ -151,13 +172,17 @@ def create_task(project_id: str, data: TaskCreate, db: Session = Depends(get_db)
     task_data = data.model_dump()
     cp_ids = task_data.pop("code_project_ids", None)
     wt_config_id = task_data.pop("worktree_config_id", None)
+    wt_branch = task_data.pop("worktree_branch", None)
+    wt_path = task_data.pop("worktree_path", None)
+    wt_base_repo = task_data.pop("worktree_base_repo_path", None)
     task = Task(project_id=project_id, **task_data)
     db.add(task)
     db.flush()
     if cp_ids:
         for cp_id in cp_ids:
             db.add(TaskCodeProject(task_id=task.id, code_project_id=cp_id))
-    if wt_config_id:
+    if wt_config_id and wt_config_id not in ("none", "manual"):
+        task.worktree_config_id = wt_config_id
         wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == wt_config_id).first()
         if wt_config:
             project = db.query(Project).filter(Project.id == project_id).first()
@@ -173,6 +198,21 @@ def create_task(project_id: str, data: TaskCreate, db: Session = Depends(get_db)
             db.add(wt)
             db.flush()
             task.worktree_id = wt.id
+    elif wt_config_id == "none":
+        task.worktree_config_id = "none"
+    elif wt_config_id == "manual" or (wt_branch and wt_path and wt_base_repo):
+        # Manual worktree mode: user specified branch/path/base_repo directly.
+        wt = Worktree(
+            task_id=task.id,
+            config_id=None,
+            base_repo_path=wt_base_repo,
+            branch=wt_branch,
+            path=wt_path,
+            status="pending",
+        )
+        db.add(wt)
+        db.flush()
+        task.worktree_id = wt.id
     db.commit()
     db.refresh(task)
     log_activity(db, project_id, "task_created", "task", task.id, task.title,
@@ -194,6 +234,7 @@ def update_task(task_id: str, data: TaskUpdate, db: Session = Depends(get_db)):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     update_data = data.model_dump(exclude_unset=True)
+    has_wt_config = "worktree_config_id" in update_data
     code_project_ids = update_data.pop("code_project_ids", None)
     worktree_config_id = update_data.pop("worktree_config_id", None)
     for k, v in update_data.items():
@@ -202,8 +243,10 @@ def update_task(task_id: str, data: TaskUpdate, db: Session = Depends(get_db)):
         db.query(TaskCodeProject).filter(TaskCodeProject.task_id == task_id).delete()
         for cp_id in code_project_ids:
             db.add(TaskCodeProject(task_id=task_id, code_project_id=cp_id))
+    if has_wt_config and worktree_config_id:
+        task.worktree_config_id = worktree_config_id
     if worktree_config_id is not None and not task.worktree:
-        if worktree_config_id:
+        if worktree_config_id and worktree_config_id != "none":
             wt_config = db.query(WorktreeConfig).filter(WorktreeConfig.id == worktree_config_id).first()
             if wt_config:
                 project = db.query(Project).filter(Project.id == task.project_id).first()
@@ -287,6 +330,19 @@ def change_task_status(task_id: str, data: TaskStatusUpdate, db: Session = Depen
     log_activity(db, task.project_id, "task_status_changed", "task", task.id, task.title,
                  f"'{task.title}': {old_status} → {task.status}",
                  {"old_status": old_status, "new_status": task.status})
+    # Fire notification events for relevant transitions.
+    if data.status in {"done", "complete", "cancelled", "review"}:
+        try:
+            from app.services.notification_service import ingest_event
+            ingest_event(
+                db,
+                event_type=f"task.{data.status}",
+                task_id=task.id,
+                project_id=task.project_id,
+            )
+        except Exception:
+            # Notification failures must never block a task status change.
+            pass
     return task
 
 
@@ -339,6 +395,12 @@ def execute_task(task_id: str, data: ExecuteRequest, db: Session = Depends(get_d
     logger.info("Execute task '%s' (id=%s) with config '%s' (id=%s)",
                 task.title, task.id, config.name, config.id)
     logger.debug("Raw command template: %s", config.command_template)
+
+    if task.worktree_config_id is None and not task.worktree:
+        raise HTTPException(
+            status_code=422,
+            detail="任务执行前必须配置 Worktree。请在任务详情中选择「不使用 Worktree」或指定一个 Worktree 配置。",
+        )
 
     replacements = {
         "{task_id}": task.id,
