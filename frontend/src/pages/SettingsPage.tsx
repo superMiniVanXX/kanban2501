@@ -15,6 +15,7 @@ import {
   deleteWorktreeConfig,
   remoteHostApi,
 } from '../services/api';
+import SettingsNotificationsTab from '../components/SettingsNotificationsTab';
 
 const PLACEHOLDER_VARS = [
   '{task_id}', '{task_title}', '{task_status}', '{task_priority}', '{task_type}',
@@ -24,7 +25,7 @@ const PLACEHOLDER_VARS = [
 ];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'execution' | 'projects' | 'worktree' | 'remote-hosts'>('execution');
+  const [activeTab, setActiveTab] = useState<'execution' | 'projects' | 'worktree' | 'remote-hosts' | 'notifications'>('execution');
 
   // Execution configs state
   const [configs, setConfigs] = useState<ExecutionConfig[]>([]);
@@ -285,6 +286,14 @@ export default function SettingsPage() {
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >Remote Hosts</button>
+        <button
+          onClick={() => setActiveTab('notifications')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'notifications'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >Notifications</button>
       </div>
 
       {/* Execution Configs tab */}
@@ -912,6 +921,9 @@ export default function SettingsPage() {
           )}
         </>
       )}
+
+      {/* Notifications tab */}
+      {activeTab === 'notifications' && <SettingsNotificationsTab />}
     </div>
   );
 }

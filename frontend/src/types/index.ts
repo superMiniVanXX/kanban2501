@@ -54,12 +54,23 @@ export interface Task {
   verify_criteria: string | null;
   implementation_plan: string | null;
   exclude_from_stats: boolean;
-  code_projects: { id: string; name: string }[] | null;
+  code_projects: { id: string; name: string; path: string | null }[] | null;
   worktree: Worktree | null;
+  worktree_config_id: string | null;
   remote_host_id: string | null;
   remote_host: RemoteHostBrief | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ActivityTask {
+  id: string;
+  title: string;
+  status: Task['status'];
+  priority: Task['priority'];
+  project_id: string;
+  project_name: string;
+  last_changed_at: string;
 }
 
 export interface Column {
@@ -84,6 +95,7 @@ export type ProjectCreate = Pick<Project, 'name'> & {
   parent_id?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  exclude_from_stats?: boolean;
 };
 
 export interface CodeProject {
@@ -155,6 +167,7 @@ export interface Worktree {
   id: string;
   task_id: string;
   config_id: string | null;
+  base_repo_path: string | null;
   branch: string;
   path: string;
   status: 'pending' | 'active' | 'removed' | 'error';
@@ -162,6 +175,15 @@ export interface Worktree {
   created_at: string;
   updated_at: string;
 }
+
+/** Parameters for creating/rebuilding a task worktree.
+ *  Config mode: pass config_id. Manual mode: pass branch+path+base_repo_path. */
+export type WorktreeCreateParams = {
+  config_id?: string;
+  branch?: string;
+  path?: string;
+  base_repo_path?: string;
+};
 
 export interface RemoteHost {
   id: string;
@@ -205,9 +227,9 @@ export interface SyncResult {
   dest_path: string;
   host_name: string;
 }
-
 export type TaskCreate = Pick<Task, 'title'> & {
   description?: string;
+  acceptance_criteria?: string;
   priority?: Task['priority'];
   task_type?: Task['task_type'];
   assignee?: string;
@@ -216,7 +238,14 @@ export type TaskCreate = Pick<Task, 'title'> & {
   due_date?: string | null;
   tags?: string[];
   worktree_config_id?: string;
+  worktree_branch?: string;
+  worktree_path?: string;
+  worktree_base_repo_path?: string;
   remote_host_id?: string | null;
+};
+
+export type TaskUpdate = Partial<Task> & {
+  code_project_ids?: string[] | null;
 };
 
 export interface SearchResult {
@@ -265,4 +294,78 @@ export interface Statistics {
   daily: DailyStats[];
   weekly: WeeklyStats[];
   monthly: MonthlyStats[];
+}
+
+export type NotificationChannelType = 'desktop' | 'webhook' | 'sound' | 'email';
+
+export interface NotificationChannel {
+  id: string;
+  name: string;
+  channel_type: NotificationChannelType;
+  config: Record<string, unknown>;
+  event_filters: string[];
+  project_filters: string[];
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationChannelCreate {
+  name: string;
+  channel_type: NotificationChannelType;
+  config: Record<string, unknown>;
+  event_filters?: string[];
+  project_filters?: string[];
+  enabled?: boolean;
+}
+
+export interface NotificationChannelUpdate {
+  name?: string;
+  config?: Record<string, unknown>;
+  event_filters?: string[];
+  project_filters?: string[];
+  enabled?: boolean;
+}
+
+export interface NotificationLog {
+  id: string;
+  channel_id: string | null;
+  channel_name: string;
+  event_type: string;
+  task_id: string | null;
+  project_id: string | null;
+  status: 'success' | 'failure';
+  detail: string;
+  http_status: number | null;
+  duration_ms: number;
+  created_at: string;
+}
+
+export interface AgentEventResult {
+  matched: number;
+  succeeded: number;
+  failed: number;
+  log_ids: string[];
+}
+
+export interface SyncHooksResult {
+  forwarder_updated: boolean;
+  worktrees_synced: number;
+  worktree_ids: string[];
+  errors: { worktree_id: string; path: string; error: string }[];
+}
+
+export type NotificationSeverity = 'info' | 'warning' | 'error';
+
+export interface NotificationItem {
+  id: string;
+  event_type: string;
+  source: string | null;
+  title: string;
+  message: string | null;
+  task_id: string | null;
+  project_id: string | null;
+  severity: NotificationSeverity;
+  read_at: string | null;
+  created_at: string;
 }

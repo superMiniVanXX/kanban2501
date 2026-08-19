@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getTrash, restoreProject, restoreTask } from '../services/api';
-import type { TrashData, Project, Task } from '../types';
+import type { TrashData } from '../types';
 
 const STATUS_LABEL: Record<string, string> = {
   backlog: 'Backlog', todo: 'To Do', in_progress: 'In Progress',
@@ -23,7 +22,6 @@ function EmptyTrash() {
 export default function TrashPage() {
   const [data, setData] = useState<TrashData | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const fetchTrash = () => {
     setLoading(true);

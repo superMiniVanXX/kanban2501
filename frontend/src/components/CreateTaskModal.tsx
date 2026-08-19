@@ -124,19 +124,53 @@ export default function CreateTaskModal({ open, onClose, onSubmit, defaultStatus
               />
             </div>
           </div>
-          {wtConfigs.length > 0 && (
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Worktree 配置</label>
-              <select
-                value={form.worktree_config_id || ''}
-                onChange={(e) => setForm((f) => ({ ...f, worktree_config_id: e.target.value || undefined }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="">不使用 Worktree</option>
-                {wtConfigs.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Worktree 配置</label>
+            <select
+              value={form.worktree_config_id ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, worktree_config_id: e.target.value || undefined, worktree_branch: undefined, worktree_path: undefined, worktree_base_repo_path: undefined }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="">请选择...</option>
+              <option value="none">不使用 Worktree</option>
+              <option value="manual">手动指定</option>
+              {wtConfigs.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          {form.worktree_config_id === 'manual' && (
+            <div className="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">主仓库路径</label>
+                <input
+                  type="text"
+                  value={form.worktree_base_repo_path ?? ''}
+                  onChange={(e) => setForm((f) => ({ ...f, worktree_base_repo_path: e.target.value || undefined }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  placeholder="/home/user/repo"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">分支名</label>
+                <input
+                  type="text"
+                  value={form.worktree_branch ?? ''}
+                  onChange={(e) => setForm((f) => ({ ...f, worktree_branch: e.target.value || undefined }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  placeholder="feature/my-branch"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">目录路径</label>
+                <input
+                  type="text"
+                  value={form.worktree_path ?? ''}
+                  onChange={(e) => setForm((f) => ({ ...f, worktree_path: e.target.value || undefined }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                  placeholder="/home/user/worktrees/my-branch"
+                />
+              </div>
             </div>
           )}
           {remoteHosts.length > 0 && (

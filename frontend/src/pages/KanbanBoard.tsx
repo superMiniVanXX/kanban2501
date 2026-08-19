@@ -1,13 +1,29 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
-import { getBoard, getProjectTree, changeTaskStatus, moveTask, createTask, updateTask, deleteTask, updateProject, createProject, createSubProject, getExecutionConfigs, getCodeProjects, getWorktreeConfigs, createTaskWorktree, deleteTaskWorktree, openTaskWorktree, remoteHostApi, syncTask } from '../services/api';
-import type { Board, ProjectTree as ProjectTreeType, Task, TaskCreate, ExecutionConfig, CodeProject, WorktreeConfig, RemoteHost, SyncResult } from '../types';
+import { getBoard, getProjectTree, changeTaskStatus, moveTask, createTask, updateTask, deleteTask, updateProject, createProject, createSubProject, getExecutionConfigs, getCodeProjects, getWorktreeConfigs, createTaskWorktree, importTaskWorktree, deleteTaskWorktree, openTaskWorktree, remoteHostApi } from '../services/api';
+import type { Board, ProjectTree as ProjectTreeType, Task, TaskCreate, ExecutionConfig, CodeProject, WorktreeConfig, RemoteHost } from '../types';
 import KanbanColumn from '../components/KanbanColumn';
 import CreateTaskModal from '../components/CreateTaskModal';
 import ProjectTree from '../components/ProjectTree';
 import ActivityLog from '../components/ActivityLog';
 import { useFixedDropdown } from '../hooks/useFixedDropdown';
+
+/** Extract a human-readable detail string from an unknown error (typically axios). */
+function getErrorDetail(err: unknown): string {
+  if (err && typeof err === 'object' && 'response' in err) {
+    const resp = (err as { response?: unknown }).response;
+    if (resp && typeof resp === 'object' && 'data' in resp) {
+      const data = (resp as { data?: unknown }).data;
+      if (data && typeof data === 'object' && 'detail' in data) {
+        const detail = (data as { detail?: unknown }).detail;
+        if (typeof detail === 'string') return detail;
+      }
+    }
+  }
+  if (err instanceof Error) return err.message;
+  return 'Unknown error';
+}
 
 export default function KanbanBoard() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -21,20 +37,25 @@ export default function KanbanBoard() {
   const [codeProjects, setCodeProjects] = useState<CodeProject[]>([]);
   const [wtConfigs, setWtConfigs] = useState<WorktreeConfig[]>([]);
   const [showWtDropdown, setShowWtDropdown] = useState(false);
+  const [manualWtMode, setManualWtMode] = useState(false);
+  const [manualWtBranch, setManualWtBranch] = useState('');
+  const [manualWtPath, setManualWtPath] = useState('');
+  const [manualWtRepo, setManualWtRepo] = useState('');
+  const [importWtMode, setImportWtMode] = useState(false);
+  const [importWtPath, setImportWtPath] = useState('');
 
-  // Remote host + sync modal state
+  // Remote hosts (for task detail's default-host selector; sync modal lives on TaskCard)
   const [remoteHosts, setRemoteHosts] = useState<RemoteHost[]>([]);
-  const [syncModalOpen, setSyncModalOpen] = useState(false);
-  const [syncHostId, setSyncHostId] = useState<string | null>(null);
-  const [syncPassword, setSyncPassword] = useState('');
-  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
-  const [syncLoading, setSyncLoading] = useState(false);
   const [logRefresh, setLogRefresh] = useState(0);
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [pendingDeletion, setPendingDeletion] = useState<Set<string>>(new Set());
 
   const [editingImplPlan, setEditingImplPlan] = useState(false);
   const [implPlanDraft, setImplPlanDraft] = useState('');
+  const [editingAcceptanceCriteria, setEditingAcceptanceCriteria] = useState(false);
+  const [acceptanceCriteriaDraft, setAcceptanceCriteriaDraft] = useState('');
+  const [editingVerifyCriteria, setEditingVerifyCriteria] = useState(false);
+  const [verifyCriteriaDraft, setVerifyCriteriaDraft] = useState('');
 
   const [showCodeProjectDropdown, setShowRelatedDropdown] = useState(false);
   const [codeProjectSearch, setCodeProjectSearch] = useState('');
@@ -760,20 +781,102 @@ export default function KanbanBoard() {
               </div>
 
               {/* Acceptance Criteria */}
-              {editingTask.acceptance_criteria && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Acceptance Criteria (开发验收)</h4>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap bg-emerald-50 rounded-lg p-3 border border-emerald-100">{editingTask.acceptance_criteria}</p>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Acceptance Criteria (开发验收)</h4>
+                  {!editingAcceptanceCriteria && (
+                    <button
+                      onClick={() => { setEditingAcceptanceCriteria(true); setAcceptanceCriteriaDraft(editingTask.acceptance_criteria || ''); }}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Edit acceptance criteria"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </button>
+                  )}
                 </div>
-              )}
+                {editingAcceptanceCriteria ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={acceptanceCriteriaDraft}
+                      onChange={(e) => setAcceptanceCriteriaDraft(e.target.value)}
+                      rows={4}
+                      autoFocus
+                      placeholder="Acceptance criteria..."
+                      className="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none resize-y"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => setEditingAcceptanceCriteria(false)}
+                        className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                      >Cancel</button>
+                      <button
+                        onClick={() => {
+                          handleSaveTask({ acceptance_criteria: acceptanceCriteriaDraft || null });
+                          setEditingTask({ ...editingTask, acceptance_criteria: acceptanceCriteriaDraft || null });
+                          setEditingAcceptanceCriteria(false);
+                        }}
+                        className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                      >Save</button>
+                    </div>
+                  </div>
+                ) : editingTask.acceptance_criteria ? (
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap bg-emerald-50 rounded-lg p-3 border border-emerald-100">{editingTask.acceptance_criteria}</p>
+                ) : (
+                  <button
+                    onClick={() => { setEditingAcceptanceCriteria(true); setAcceptanceCriteriaDraft(''); }}
+                    className="text-sm text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg px-3 py-3 w-full text-left transition-colors border border-dashed border-gray-200"
+                  >Add acceptance criteria...</button>
+                )}
+              </div>
 
               {/* Verify Criteria */}
-              {editingTask.verify_criteria && (
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Verify Criteria (质量验证)</h4>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap bg-cyan-50 rounded-lg p-3 border border-cyan-100">{editingTask.verify_criteria}</p>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Verify Criteria (质量验证)</h4>
+                  {!editingVerifyCriteria && (
+                    <button
+                      onClick={() => { setEditingVerifyCriteria(true); setVerifyCriteriaDraft(editingTask.verify_criteria || ''); }}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Edit verify criteria"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </button>
+                  )}
                 </div>
-              )}
+                {editingVerifyCriteria ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={verifyCriteriaDraft}
+                      onChange={(e) => setVerifyCriteriaDraft(e.target.value)}
+                      rows={4}
+                      autoFocus
+                      placeholder="Verify criteria..."
+                      className="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none resize-y"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => setEditingVerifyCriteria(false)}
+                        className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                      >Cancel</button>
+                      <button
+                        onClick={() => {
+                          handleSaveTask({ verify_criteria: verifyCriteriaDraft || null });
+                          setEditingTask({ ...editingTask, verify_criteria: verifyCriteriaDraft || null });
+                          setEditingVerifyCriteria(false);
+                        }}
+                        className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                      >Save</button>
+                    </div>
+                  </div>
+                ) : editingTask.verify_criteria ? (
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap bg-cyan-50 rounded-lg p-3 border border-cyan-100">{editingTask.verify_criteria}</p>
+                ) : (
+                  <button
+                    onClick={() => { setEditingVerifyCriteria(true); setVerifyCriteriaDraft(''); }}
+                    className="text-sm text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg px-3 py-3 w-full text-left transition-colors border border-dashed border-gray-200"
+                  >Add verify criteria...</button>
+                )}
+              </div>
 
               {/* Sub-Project */}
               <div className="border-t border-gray-100 pt-4">
@@ -878,7 +981,7 @@ export default function KanbanBoard() {
                                   ...editingTask,
                                   code_projects: [
                                     ...(editingTask.code_projects || []),
-                                    { id: p.id, name: p.name },
+                                    { id: p.id, name: p.name, path: p.path ?? null },
                                   ],
                                 });
                                 await silentRefresh();
@@ -938,27 +1041,16 @@ export default function KanbanBoard() {
                         打开
                       </button>
                     )}
-                    {editingTask.worktree.status === 'active' && (
-                      <button
-                        onClick={() => {
-                          setSyncHostId(editingTask.remote_host_id || (remoteHosts[0]?.id ?? null));
-                          setSyncPassword('');
-                          setSyncResult(null);
-                          setSyncModalOpen(true);
-                        }}
-                        disabled={remoteHosts.length === 0}
-                        className="px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={remoteHosts.length === 0 ? 'No remote hosts configured — add one in Settings' : 'Sync worktree to remote host via rsync'}
-                      >
-                        Sync to Remote
-                      </button>
-                    )}
                     {editingTask.worktree.status !== 'removed' && (
                       <button
                         onClick={async () => {
-                          await deleteTaskWorktree(editingTask.id);
-                          setEditingTask({ ...editingTask, worktree: null });
-                          await silentRefresh();
+                          try {
+                            await deleteTaskWorktree(editingTask.id);
+                            setEditingTask({ ...editingTask, worktree: null });
+                            await silentRefresh();
+                          } catch (err: unknown) {
+                            alert(getErrorDetail(err) || '移除 worktree 失败');
+                          }
                         }}
                         className="text-xs text-red-400 hover:text-red-600 transition-colors ml-auto"
                       >
@@ -966,8 +1058,19 @@ export default function KanbanBoard() {
                       </button>
                     )}
                   </div>
-                ) : wtConfigs.length > 0 ? (
-                  <div className="flex items-center gap-2">
+                ) : (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {editingTask.worktree_config_id === null && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-medium">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                        未配置
+                      </span>
+                    )}
+                    {editingTask.worktree_config_id === 'none' && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-md bg-gray-50 text-gray-500 border border-gray-200 font-medium">
+                        不使用 Worktree
+                      </span>
+                    )}
                     {showWtDropdown ? (
                       <>
                         <select
@@ -975,31 +1078,159 @@ export default function KanbanBoard() {
                           defaultValue=""
                           onChange={async (e) => {
                             const configId = e.target.value;
-                            setShowWtDropdown(false);
                             if (!configId) return;
-                            try {
-                              const wt = await createTaskWorktree(editingTask.id, configId);
-                              setEditingTask({ ...editingTask, worktree: wt });
-                              await silentRefresh();
-                            } catch (err: any) {
-                              alert(err.response?.data?.detail || 'Failed to create worktree');
+                            if (configId === 'manual') {
+                              setShowWtDropdown(false);
+                              setManualWtMode(true);
+                              return;
+                            }
+                            if (configId === 'import') {
+                              setShowWtDropdown(false);
+                              setImportWtMode(true);
+                              return;
+                            }
+                            setShowWtDropdown(false);
+                            if (configId === 'none') {
+                              try {
+                                await updateTask(editingTask.id, { worktree_config_id: 'none' });
+                                setEditingTask({ ...editingTask, worktree_config_id: 'none' });
+                                await silentRefresh();
+                              } catch (err: unknown) {
+                                alert(getErrorDetail(err) || 'Failed to update worktree config');
+                              }
+                            } else {
+                              try {
+                                const wt = await createTaskWorktree(editingTask.id, { config_id: configId });
+                                setEditingTask({ ...editingTask, worktree: wt, worktree_config_id: configId });
+                                await silentRefresh();
+                              } catch (err: unknown) {
+                                alert(getErrorDetail(err) || 'Failed to create worktree');
+                              }
                             }
                           }}
-                          onBlur={() => setShowWtDropdown(false)}
+                          onBlur={() => { /* don't auto-close: manual mode check is stale here */ }}
                           className="flex-1 border border-green-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:outline-none"
                         >
                           <option value="">选择配置...</option>
+                          <option value="none">不使用 Worktree</option>
+                          <option value="manual">手动指定</option>
+                          <option value="import">从目录导入</option>
                           {wtConfigs.map((c) => (
                             <option key={c.id} value={c.id}>{c.name}</option>
                           ))}
                         </select>
                         <button
-                          onClick={() => setShowWtDropdown(false)}
+                          onClick={() => { setShowWtDropdown(false); setManualWtMode(false); }}
                           className="text-gray-400 hover:text-gray-600 text-sm"
                         >
                           取消
                         </button>
                       </>
+                    ) : manualWtMode ? (
+                      <div className="w-full space-y-2 p-3 bg-gray-50 rounded-lg border border-green-200">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">主仓库路径</label>
+                          <input
+                            type="text"
+                            value={manualWtRepo}
+                            onChange={(e) => setManualWtRepo(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-green-400 focus:outline-none"
+                            placeholder="/home/user/repo"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">分支名</label>
+                          <input
+                            type="text"
+                            value={manualWtBranch}
+                            onChange={(e) => setManualWtBranch(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-green-400 focus:outline-none"
+                            placeholder="feature/my-branch"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">目录路径</label>
+                          <input
+                            type="text"
+                            value={manualWtPath}
+                            onChange={(e) => setManualWtPath(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-green-400 focus:outline-none"
+                            placeholder="/home/user/worktrees/my-branch"
+                          />
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={async () => {
+                              if (!manualWtRepo.trim() || !manualWtBranch.trim() || !manualWtPath.trim()) return;
+                              try {
+                                const wt = await createTaskWorktree(editingTask.id, {
+                                  branch: manualWtBranch.trim(),
+                                  path: manualWtPath.trim(),
+                                  base_repo_path: manualWtRepo.trim(),
+                                });
+                                setEditingTask({ ...editingTask, worktree: wt, worktree_config_id: 'manual' });
+                                setManualWtMode(false);
+                                setManualWtBranch('');
+                                setManualWtPath('');
+                                setManualWtRepo('');
+                                await silentRefresh();
+                              } catch (err: unknown) {
+                                alert(getErrorDetail(err) || 'Failed to create worktree');
+                              }
+                            }}
+                            disabled={!manualWtRepo.trim() || !manualWtBranch.trim() || !manualWtPath.trim()}
+                            className="px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            创建
+                          </button>
+                          <button
+                            onClick={() => { setManualWtMode(false); setManualWtBranch(''); setManualWtPath(''); setManualWtRepo(''); }}
+                            className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            取消
+                          </button>
+                        </div>
+                      </div>
+                    ) : importWtMode ? (
+                      <div className="w-full space-y-2 p-3 bg-gray-50 rounded-lg border border-green-200">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">已有目录路径</label>
+                          <input
+                            type="text"
+                            value={importWtPath}
+                            onChange={(e) => setImportWtPath(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-green-400 focus:outline-none"
+                            placeholder="/home/user/existing-dir"
+                          />
+                          <p className="text-xs text-gray-400 mt-1">导入已存在的目录，不执行 git 命令。若是 git 仓库会自动读取当前分支。</p>
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={async () => {
+                              if (!importWtPath.trim()) return;
+                              try {
+                                const wt = await importTaskWorktree(editingTask.id, importWtPath.trim());
+                                setEditingTask({ ...editingTask, worktree: wt, worktree_config_id: 'manual' });
+                                setImportWtMode(false);
+                                setImportWtPath('');
+                                await silentRefresh();
+                              } catch (err: unknown) {
+                                alert(getErrorDetail(err) || '导入 worktree 失败');
+                              }
+                            }}
+                            disabled={!importWtPath.trim()}
+                            className="px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            导入
+                          </button>
+                          <button
+                            onClick={() => { setImportWtMode(false); setImportWtPath(''); }}
+                            className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            取消
+                          </button>
+                        </div>
+                      </div>
                     ) : (
                       <button
                         onClick={() => setShowWtDropdown(true)}
@@ -1012,8 +1243,6 @@ export default function KanbanBoard() {
                       </button>
                     )}
                   </div>
-                ) : (
-                  <p className="text-xs text-gray-400">暂无 Worktree 配置，请先在 设置 中添加</p>
                 )}
               </div>
 
@@ -1068,148 +1297,6 @@ export default function KanbanBoard() {
         </div>
       )}
 
-      {/* Sync to Remote modal */}
-      {syncModalOpen && editingTask && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4"
-          onClick={() => !syncLoading && setSyncModalOpen(false)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Sync worktree to remote host</h3>
-              <button
-                onClick={() => !syncLoading && setSyncModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-                disabled={syncLoading}
-              >
-                &times;
-              </button>
-            </div>
-
-            {editingTask.worktree?.status !== 'active' ? (
-              <p className="text-sm text-red-600">
-                This task no longer has an active worktree. Close this dialog and create one first.
-              </p>
-            ) : remoteHosts.length === 0 ? (
-              <p className="text-sm text-red-600">
-                No remote hosts configured.{' '}
-                <Link to="/settings" onClick={() => setSyncModalOpen(false)} className="text-purple-600 hover:underline">
-                  Add one in Settings
-                </Link>.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                  <div className="font-semibold text-gray-700 mb-0.5">Source</div>
-                  <div className="font-mono break-all">{editingTask.worktree.path}/</div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Host</label>
-                  <select
-                    value={syncHostId || ''}
-                    onChange={(e) => setSyncHostId(e.target.value || null)}
-                    disabled={syncLoading}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none font-medium"
-                  >
-                    <option value="">Select a host…</option>
-                    {remoteHosts.map((h) => (
-                      <option key={h.id} value={h.id}>
-                        {h.name} — {h.ssh_user}@{h.ssh_host}:{h.ssh_port}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={syncPassword}
-                    onChange={(e) => setSyncPassword(e.target.value)}
-                    disabled={syncLoading}
-                    placeholder="Optional"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">Leave empty to use SSH key authentication</p>
-                </div>
-
-                {syncResult && (
-                  <div className={`rounded-lg border p-3 text-sm ${
-                    syncResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                  }`}>
-                    <div className={`font-medium mb-2 ${syncResult.success ? 'text-green-800' : 'text-red-800'}`}>
-                      {syncResult.success ? '✓ Sync succeeded' : `✗ Sync failed (exit ${syncResult.exit_code})`}
-                    </div>
-                    {syncResult.dest_path && (
-                      <div className="text-xs text-gray-600 mb-2 font-mono break-all">
-                        Destination: {syncResult.dest_path}
-                      </div>
-                    )}
-                    {syncResult.stdout && (
-                      <pre className="text-xs font-mono whitespace-pre-wrap text-gray-700 mb-2 max-h-40 overflow-y-auto">{syncResult.stdout}</pre>
-                    )}
-                    {syncResult.stderr && (
-                      <pre className="text-xs font-mono whitespace-pre-wrap text-red-700 max-h-40 overflow-y-auto">{syncResult.stderr}</pre>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setSyncModalOpen(false)}
-                disabled={syncLoading}
-                className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
-              >
-                Close
-              </button>
-              <button
-                disabled={!syncHostId || syncLoading || editingTask.worktree?.status !== 'active' || remoteHosts.length === 0}
-                onClick={async () => {
-                  if (!syncHostId) return;
-                  setSyncLoading(true);
-                  setSyncResult(null);
-                  try {
-                    const result = await syncTask(editingTask.id, {
-                      host_id: syncHostId,
-                      password: syncPassword || undefined,
-                    });
-                    setSyncResult(result);
-                  } catch (err: any) {
-                    setSyncResult({
-                      success: false,
-                      stdout: '',
-                      stderr: err.response?.data?.detail || err.message || 'Sync request failed',
-                      exit_code: -1,
-                      command: '',
-                      dest_path: '',
-                      host_name: '',
-                    });
-                  } finally {
-                    setSyncLoading(false);
-                  }
-                }}
-                className="px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {syncLoading && (
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                )}
-                {syncLoading ? 'Syncing…' : 'Sync'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

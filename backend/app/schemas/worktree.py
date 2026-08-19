@@ -7,6 +7,7 @@ class WorktreeBrief(BaseModel):
     branch: str
     path: str
     status: str
+    base_repo_path: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -15,6 +16,7 @@ class WorktreeResponse(BaseModel):
     id: str
     task_id: str
     config_id: str | None
+    base_repo_path: str | None
     branch: str
     path: str
     status: str
@@ -26,4 +28,14 @@ class WorktreeResponse(BaseModel):
 
 
 class WorktreeCreateRequest(BaseModel):
-    config_id: str
+    config_id: str | None = None
+    branch: str | None = None
+    path: str | None = None
+    base_repo_path: str | None = None
+
+
+class WorktreeImportRequest(BaseModel):
+    """Associate an already-existing directory with a task as its worktree."""
+    path: str
+
+

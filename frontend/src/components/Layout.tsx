@@ -1,6 +1,7 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import SearchBox from './SearchBox';
 import RecentTasks from './RecentTasks';
+import NotificationQueue from './NotificationQueue';
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
@@ -21,7 +22,8 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
         <div className="flex-1 flex justify-center">
           <SearchBox />
         </div>
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <NotificationQueue />
           <RecentTasks />
         </div>
         <nav className="flex items-center gap-1 flex-shrink-0">

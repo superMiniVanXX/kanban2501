@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import ensure_schema
-from app.routers import projects, tasks, board, execution_configs, activity, code_projects, statistics, trash, worktree_configs, worktrees, remote_hosts
+from app.routers import projects, tasks, board, execution_configs, activity, code_projects, statistics, trash, worktree_configs, worktrees, remote_hosts, notifications
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,7 +44,22 @@ app.include_router(trash.router, prefix="/api/v1")
 app.include_router(worktree_configs.router, prefix="/api/v1")
 app.include_router(worktrees.router, prefix="/api/v1")
 app.include_router(remote_hosts.router, prefix="/api/v1")
+app.include_router(notifications.router, prefix="/api/v1")
+
+from starlette.middleware.base import BaseHTTPMiddleware
+
+
+class NoCacheHtmlMiddleware(BaseHTTPMiddleware):
+    """Prevent browsers from caching index.html so they always pick up
+    the latest hashed JS bundle on refresh."""
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/" or request.url.path.endswith(".html"):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
+
 
 static_dir = Path(__file__).resolve().parent.parent / "static"
 if static_dir.is_dir():
+    app.add_middleware(NoCacheHtmlMiddleware)
     app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")

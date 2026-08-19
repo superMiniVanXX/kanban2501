@@ -28,6 +28,9 @@ class TaskCreate(BaseModel):
     code_project_ids: list[str] | None = None
     exclude_from_stats: bool = False
     worktree_config_id: str | None = None
+    worktree_branch: str | None = None
+    worktree_path: str | None = None
+    worktree_base_repo_path: str | None = None
     remote_host_id: str | None = None
 
 
@@ -87,6 +90,7 @@ class TaskResponse(BaseModel):
     exclude_from_stats: bool = False
     code_projects: list[CodeProjectBrief] | None = None
     worktree: WorktreeBrief | None = None
+    worktree_config_id: str | None = None
     remote_host_id: str | None = None
     remote_host: "RemoteHostBrief | None" = None
     created_at: datetime
